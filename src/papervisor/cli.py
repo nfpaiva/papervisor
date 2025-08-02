@@ -1,4 +1,5 @@
 """Command line interface for papervisor."""
+
 import argparse
 import sys
 

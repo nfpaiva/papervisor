@@ -1,4 +1,5 @@
 """Basic test for papervisor functionality."""
+
 import sys
 from pathlib import Path
 

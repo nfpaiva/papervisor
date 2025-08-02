@@ -1,4 +1,5 @@
 """CSV data loader for Publish or Perish exports."""
+
 from pathlib import Path
 import pandas as pd
 
