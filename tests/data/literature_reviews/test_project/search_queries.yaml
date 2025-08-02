@@ -1,0 +1,32 @@
+search_queries:
+  - id: "test_query_1"
+    topic: "Test Topic 1"
+    query: '("test search") AND ("sample query")'
+    executed_date: "2025-08-01"
+    extractor: "Publish or Perish"
+    extractor_version: "8.0"
+    databases: ["Google Scholar"]
+    filters:
+      language: "English"
+      patents: "NO"
+      maximum_results: 10
+      include_citations: "Y"
+      only_review_articles: "NO"
+    results_file: "test_results_1.csv"
+    notes: "First test query for unit testing"
+
+  - id: "test_query_2"
+    topic: "Test Topic 2"
+    query: '("another test") AND ("machine learning")'
+    executed_date: "2025-08-01"
+    extractor: "Publish or Perish"
+    extractor_version: "8.0"
+    databases: ["Google Scholar"]
+    filters:
+      language: "English"
+      patents: "NO"
+      maximum_results: 10
+      include_citations: "Y"
+      only_review_articles: "NO"
+    results_file: "test_results_2.csv"
+    notes: "Second test query for unit testing"

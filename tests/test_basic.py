@@ -1,5 +1,4 @@
 """Basic test for papervisor functionality."""
-import os
 import sys
 from pathlib import Path
 
@@ -12,32 +11,40 @@ from papervisor import Papervisor  # noqa: E402
 
 def test_basic_functionality() -> None:
     """Test basic papervisor functionality."""
-    # Change to project directory to find data files
-    project_dir = Path(__file__).parent.parent
-    os.chdir(project_dir)
+    # Use dedicated test data directory
+    test_data_dir = Path(__file__).parent / "data"
 
-    # Initialize papervisor
-    papervisor = Papervisor("data")
+    # Initialize papervisor with test data
+    papervisor = Papervisor(str(test_data_dir))
 
     # Test listing projects first
     projects = papervisor.list_projects()
     print(f"Found {len(projects)} projects")
     assert len(projects) > 0, "No projects found"
 
-    # Test listing queries in the first project
-    first_project = projects[0]
-    queries = papervisor.list_project_queries(first_project.project_id)
+    # Verify we have the test project
+    test_project = None
+    for project in projects:
+        if project.project_id == "test_project":
+            test_project = project
+            break
+
+    assert test_project is not None, "Test project not found"
+    print(f"Using test project: {test_project.title}")
+
+    # Test listing queries in the test project
+    queries = papervisor.list_project_queries(test_project.project_id)
     print(f"Found {len(queries)} queries")
-    assert len(queries) > 0, "No queries found"
+    assert len(queries) >= 2, "Expected at least 2 test queries"
 
     # Test loading a specific query
     first_query = queries[0]
-    df = papervisor.load_query_results(first_project.project_id, first_query.id)
+    df = papervisor.load_query_results(test_project.project_id, first_query.id)
     print(f"Loaded {len(df)} papers for query '{first_query.id}'")
     assert len(df) > 0, "No papers loaded"
 
     # Test getting statistics
-    stats = papervisor.get_query_statistics(first_project.project_id, first_query.id)
+    stats = papervisor.get_query_statistics(test_project.project_id, first_query.id)
     total_citations = stats["citation_stats"]["total_citations"]
     print(
         f"Statistics: {stats['total_papers']} papers, "

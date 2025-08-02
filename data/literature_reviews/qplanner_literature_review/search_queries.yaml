@@ -20,7 +20,7 @@ search_queries:
       maximum_results: 20
       include_citations: "Y"
       only_review_articles: "NO"
-    results_file: "results/lit-review-results-q1.csv"
+    results_file: "lit-review-results-qplanner-q1.csv"
     notes: "Primary search focusing on machine learning applications in contact center agent assignment"
 
   - id: "qplanner_q2_queue_optimization"
@@ -36,7 +36,7 @@ search_queries:
       maximum_results: 20
       include_citations: "Y"
       only_review_articles: "NO"
-    results_file: "results/lit-review-results-q2.csv"
+    results_file: "lit-review-results-qplanner-q2.csv"
     notes: "Secondary search focusing on queue management and optimization techniques in call centers"
 
   - id: "qplanner_q3_call_duration_prediction"
@@ -52,7 +52,7 @@ search_queries:
       maximum_results: 20
       include_citations: "Y"
       only_review_articles: "NO"
-    results_file: "results/lit-review-results-q3.csv"
+    results_file: "lit-review-results-qplanner-q3.csv"
     notes: "Search focusing on predictive models for call duration and agent availability forecasting"
 
   - id: "qplanner_q4_customer_retention"
@@ -68,7 +68,7 @@ search_queries:
       maximum_results: 20
       include_citations: "Y"
       only_review_articles: "NO"
-    results_file: "results/lit-review-results-q4.csv"
+    results_file: "lit-review-results-qplanner-q4.csv"
     notes: "Search focusing on intelligent call routing strategies for customer retention and churn prevention"
 
   - id: "qplanner_q5_fairness_routing"
@@ -84,5 +84,5 @@ search_queries:
       maximum_results: 20
       include_citations: "Y"
       only_review_articles: "NO"
-    results_file: "results/lit-review-results-q5.csv"
+    results_file: "lit-review-results-qplanner-q5.csv"
     notes: "Search focusing on fairness algorithms and policies in call center queue management and routing"

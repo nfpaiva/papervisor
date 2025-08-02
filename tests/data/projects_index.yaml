@@ -1,0 +1,13 @@
+projects:
+  - project_id: "test_project"
+    title: "Test Literature Review Project"
+    description: "A test project for unit testing papervisor functionality"
+    created_date: "2025-08-01"
+    status: "in_progress"
+    lead_researcher: "Test User"
+    project_path: "literature_reviews/test_project"
+    search_queries_file: "literature_reviews/test_project/search_queries.yaml"
+    results_directory: "literature_reviews/test_project/results"
+    analysis_directory: "literature_reviews/test_project/analysis"
+    total_queries: 2
+    tags: ["test", "unit_testing"]

@@ -28,13 +28,18 @@ class PublishOrPerishLoader:
         Load a Publish or Perish CSV file.
 
         Args:
-            filename: Name of the CSV file to load
+            filename: Name/path of the CSV file to load (can be relative to
+                data_dir or absolute)
             normalize_columns: Whether to normalize column names to standard format
 
         Returns:
             DataFrame with the loaded data
         """
-        file_path = self.data_dir / filename
+        # Handle both absolute and relative paths
+        if Path(filename).is_absolute():
+            file_path = Path(filename)
+        else:
+            file_path = self.data_dir / filename
 
         if not file_path.exists():
             raise FileNotFoundError(f"CSV file not found: {file_path}")

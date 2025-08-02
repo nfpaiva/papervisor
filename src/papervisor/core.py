@@ -79,7 +79,7 @@ class Papervisor:
 
         # Load the CSV file
         file_path = results_dir / Path(query.results_file).name
-        df = self.csv_loader.load_csv(file_path.name, normalize_columns=True)
+        df = self.csv_loader.load_csv(str(file_path.absolute()), normalize_columns=True)
 
         # Add metadata columns
         df["project_id"] = project_id
