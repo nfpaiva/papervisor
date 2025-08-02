@@ -1,0 +1,13 @@
+projects:
+  - project_id: "qplanner_literature_review"
+    title: "Literature Review for QpLanner"
+    description: "Comprehensive literature review on contact center agent assignment and machine learning applications"
+    created_date: "2025-08-01"
+    status: "in_progress"
+    lead_researcher: "Nuno Paiva"
+    project_path: "literature_reviews/qplanner_literature_review"
+    search_queries_file: "literature_reviews/qplanner_literature_review/search_queries.yaml"
+    results_directory: "literature_reviews/qplanner_literature_review/results"
+    analysis_directory: "literature_reviews/qplanner_literature_review/analysis"
+    total_queries: 5
+    tags: ["call_center", "machine_learning", "optimization", "agent_assignment"]
