@@ -2,6 +2,7 @@
 
 import argparse
 import sys
+from typing import Dict, Any
 
 from .core import Papervisor
 
@@ -49,6 +50,77 @@ def main() -> None:
         help="Query ID (if not provided, shows combined project stats)",
     )
     stats_parser.add_argument("--data-dir", default="data", help="Data directory path")
+
+    # PDF management commands
+    pdf_parser = subparsers.add_parser("pdf", help="PDF management commands")
+    pdf_subparsers = pdf_parser.add_subparsers(dest="pdf_command", help="PDF commands")
+
+    # List PDFs command
+    list_pdfs_parser = pdf_subparsers.add_parser("list", help="List downloaded PDFs")
+    list_pdfs_parser.add_argument("project_id", help="Project ID")
+    list_pdfs_parser.add_argument("--query-id", help="Query ID (optional)")
+    list_pdfs_parser.add_argument(
+        "--data-dir", default="data", help="Data directory path"
+    )
+
+    # PDF stats command
+    pdf_stats_parser = pdf_subparsers.add_parser(
+        "stats", help="Show PDF download statistics"
+    )
+    pdf_stats_parser.add_argument("project_id", help="Project ID")
+    pdf_stats_parser.add_argument(
+        "--data-dir", default="data", help="Data directory path"
+    )
+
+    # PDF directory command
+    pdf_dir_parser = pdf_subparsers.add_parser("dir", help="Show PDF directory path")
+    pdf_dir_parser.add_argument("project_id", help="Project ID")
+    pdf_dir_parser.add_argument("--query-id", help="Query ID (optional)")
+    pdf_dir_parser.add_argument(
+        "--data-dir", default="data", help="Data directory path"
+    )
+
+    # Download PDFs command
+    download_parser = pdf_subparsers.add_parser(
+        "download", help="Download PDFs automatically"
+    )
+    download_parser.add_argument("project_id", help="Project ID")
+    download_parser.add_argument(
+        "--query-id", help="Query ID (if not provided, downloads all queries)"
+    )
+    download_parser.add_argument(
+        "--max-downloads",
+        type=int,
+        help="Maximum number of PDFs to download (for testing)",
+    )
+    download_parser.add_argument(
+        "--data-dir", default="data", help="Data directory path"
+    )
+
+    # Download status command
+    status_parser = pdf_subparsers.add_parser(
+        "status", help="Show download status and reports"
+    )
+    status_parser.add_argument("project_id", help="Project ID")
+    status_parser.add_argument("--query-id", help="Query ID (optional)")
+    status_parser.add_argument("--data-dir", default="data", help="Data directory path")
+
+    # List manual downloads command
+    manual_parser = pdf_subparsers.add_parser(
+        "manual", help="List papers requiring manual download"
+    )
+    manual_parser.add_argument("project_id", help="Project ID")
+    manual_parser.add_argument("--query-id", help="Query ID (optional)")
+    manual_parser.add_argument("--data-dir", default="data", help="Data directory path")
+
+    # Web server command
+    web_parser = pdf_subparsers.add_parser(
+        "web", help="Start web interface for PDF management"
+    )
+    web_parser.add_argument("project_id", help="Project ID")
+    web_parser.add_argument("--host", default="127.0.0.1", help="Host to bind to")
+    web_parser.add_argument("--port", type=int, default=5000, help="Port to bind to")
+    web_parser.add_argument("--data-dir", default="data", help="Data directory path")
 
     args = parser.parse_args()
 
@@ -155,6 +227,218 @@ def main() -> None:
                 print("  Top sources:")
                 for source, count in list(stats["top_sources"].items())[:5]:
                     print(f"    {source}: {count}")
+
+        elif args.command == "pdf":
+            if not args.pdf_command:
+                pdf_parser.print_help()
+                return
+
+            if args.pdf_command == "list":
+                pdfs = papervisor.list_downloaded_pdfs(args.project_id, args.query_id)
+                if not pdfs:
+                    location = (
+                        f"query '{args.query_id}'" if args.query_id else "project"
+                    )
+                    print(f"No PDFs found for {location} '{args.project_id}'.")
+                    return
+
+                location = f"query '{args.query_id}'" if args.query_id else "project"
+                print(f"Found {len(pdfs)} PDFs for {location} '{args.project_id}':")
+                for pdf_path in sorted(pdfs):
+                    print(f"  - {pdf_path.name}")
+
+            elif args.pdf_command == "stats":
+                stats = papervisor.get_pdf_download_stats(args.project_id)
+                project_info = papervisor.get_project(args.project_id)
+
+                if project_info is not None:
+                    print(f"PDF download statistics for: {project_info.title}")
+                else:
+                    print(f"PDF download statistics for project: {args.project_id}")
+
+                print(f"\nTotal PDFs: {stats.get('total', 0)}")
+                print("\nPer query:")
+                for query_id, count in sorted(stats.items()):
+                    if query_id != "total":
+                        print(f"  {query_id}: {count} PDFs")
+
+            elif args.pdf_command == "dir":
+                pdf_dir = papervisor.get_pdf_directory(args.project_id, args.query_id)
+                location = f"query '{args.query_id}'" if args.query_id else "project"
+                print(f"PDF directory for {location} '{args.project_id}':")
+                print(f"  {pdf_dir}")
+                if not pdf_dir.exists():
+                    print("  (Directory will be created when needed)")
+
+            elif args.pdf_command == "download":
+                # Always download all queries for a project
+                print(
+                    f"Starting PDF download for all queries in project "
+                    f"'{args.project_id}'..."
+                )
+
+                # Ignore query_id parameter since we always download everything
+                if args.query_id:
+                    print(
+                        "Note: --query-id is ignored. Downloading all queries "
+                        "for project consistency."
+                    )
+
+                results = papervisor.download_project_pdfs(
+                    args.project_id, max_downloads=args.max_downloads
+                )
+
+                # Calculate totals across all queries
+                total_success = 0
+                total_existed = 0
+                total_failed = 0
+                total_manual = 0
+                total_processed = 0
+
+                print("Per Query Results:")
+                for query_id, query_results in results.items():
+                    success = sum(1 for r in query_results if r.status == "success")
+                    existed = sum(
+                        1 for r in query_results if r.status == "already_existed"
+                    )
+                    failed = sum(1 for r in query_results if r.status == "failed")
+                    manual = sum(
+                        1 for r in query_results if r.status == "manual_required"
+                    )
+
+                    total_success += success
+                    total_existed += existed
+                    total_failed += failed
+                    total_manual += manual
+                    total_processed += len(query_results)
+
+                    print(
+                        f"  {query_id}: {success} downloaded, {existed} existed, "
+                        f"{manual} manual, {failed} failed"
+                    )
+
+                print("Overall Project Download Summary:")
+                print(f"  Successfully downloaded: {total_success}")
+                print(f"  Already existed: {total_existed}")
+                print(f"  Manual required: {total_manual}")
+                print(f"  Failed: {total_failed}")
+                print(f"  Total processed: {total_processed}")
+
+            elif args.pdf_command == "status":
+                download_stats: Dict[str, Any] = papervisor.get_download_statistics(
+                    args.project_id, args.query_id
+                )
+
+                if args.query_id:
+                    print(
+                        f"Download status for query '{args.query_id}' in project "
+                        f"'{args.project_id}':"
+                    )
+                else:
+                    print(f"Download status for project '{args.project_id}':")
+
+                if "by_query" in download_stats:
+                    # Project-wide stats
+                    summary = download_stats.get("summary", download_stats)
+                    print("Overall Statistics:")
+                    print(f"  Total papers: {summary.get('total_papers', 0)}")
+                    print(
+                        f"  Successfully downloaded: "
+                        f"{summary.get('successful_downloads', 0)}"
+                    )
+                    print(f"  Failed downloads: {summary.get('failed_downloads', 0)}")
+                    print(
+                        f"  Manual downloads required: "
+                        f"{summary.get('manual_required', 0)}"
+                    )
+                    print(f"  Already existed: {summary.get('already_existed', 0)}")
+
+                    print("Per Query:")
+                    for query_id, query_stats in download_stats["by_query"].items():
+                        print(f"  {query_id}:")
+                        print(f"    Total: {query_stats.get('total_papers', 0)}")
+                        print(
+                            f"    Downloaded: "
+                            f"{query_stats.get('successful_downloads', 0)}"
+                        )
+                        print(f"    Failed: {query_stats.get('failed_downloads', 0)}")
+                        print(
+                            f"    Manual required: "
+                            f"{query_stats.get('manual_required', 0)}"
+                        )
+                        print(
+                            f"    Already existed: "
+                            f"{query_stats.get('already_existed', 0)}"
+                        )
+                else:
+                    # Single query stats
+                    print(f"  Total papers: {download_stats.get('total_papers', 0)}")
+                    print(
+                        f"  Successfully downloaded: "
+                        f"{download_stats.get('successful_downloads', 0)}"
+                    )
+                    print(
+                        f"  Failed downloads: "
+                        f"{download_stats.get('failed_downloads', 0)}"
+                    )
+                    print(
+                        f"  Manual downloads required: "
+                        f"{download_stats.get('manual_required', 0)}"
+                    )
+                    print(
+                        f"  Already existed: "
+                        f"{download_stats.get('already_existed', 0)}"
+                    )
+
+            elif args.pdf_command == "manual":
+                # List papers requiring manual download
+                manual_papers = papervisor.list_manual_download_candidates(
+                    args.project_id, args.query_id
+                )
+
+                if manual_papers.empty:
+                    location = (
+                        f"query '{args.query_id}'" if args.query_id else "project"
+                    )
+                    print(
+                        f"No papers requiring manual download found for "
+                        f"{location} '{args.project_id}'."
+                    )
+                else:
+                    location = (
+                        f"query '{args.query_id}'" if args.query_id else "project"
+                    )
+                    print(
+                        f"Papers requiring manual download for {location} "
+                        f"'{args.project_id}':"
+                    )
+
+                    for idx, paper in manual_papers.iterrows():
+                        print(f"\nPaper ID: {paper.get('paper_id', idx)}")
+                        print(f"Title: {paper.get('title', 'N/A')}")
+                        print(f"Status: {paper.get('status', 'N/A')}")
+                        if "error_message" in paper and paper["error_message"]:
+                            print(f"Error: {paper['error_message']}")
+
+                # Show directory for manual downloads
+                manual_dir = papervisor.get_pdf_directory(
+                    args.project_id, args.query_id
+                )
+                manual_dir = manual_dir.parent / "manual" / (args.query_id or "")
+                print(f"\nManual download directory: {manual_dir}")
+                if not manual_dir.exists():
+                    print("  (Directory will be created when needed)")
+
+            elif args.pdf_command == "web":
+                # Start web interface
+                from .web_server import PapervisorWebServer
+
+                print(f"Starting web interface for project '{args.project_id}'...")
+                print(f"Access the dashboard at: http://{args.host}:{args.port}")
+                print("Press Ctrl+C to stop the server")
+
+                server = PapervisorWebServer(args.project_id, args.data_dir)
+                server.run(host=args.host, port=args.port, debug=False)
 
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)

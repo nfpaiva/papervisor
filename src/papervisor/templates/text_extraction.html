@@ -1,0 +1,472 @@
+{% extends "base.html" %}
+
+{% block title %}Text Extraction - {{ project_id }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>📄 Text Extraction & Processing</h1>
+                <div>
+                    <span class="badge badge-info">Step 3 of 3</span>
+                    <a href="{{ url_for('download_management') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-arrow-left"></i> Back to Downloads
+                    </a>
+                </div>
+            </div>
+
+            <!-- Summary Card -->
+            <div class="card mb-3">
+                <div class="card-body py-3">
+                    <div class="kpi-container">
+                        <!-- KPI Squares in horizontal layout -->
+                        <div class="kpi-item">
+                            <div class="kpi-square bg-primary text-white">
+                                <span class="kpi-number">{{ total_papers }}</span>
+                                <span class="kpi-label">Papers to Process</span>
+                            </div>
+                        </div>
+                        <div class="kpi-item">
+                            <div class="kpi-square bg-success text-white">
+                                <span class="kpi-number">{{ processed_success }}</span>
+                                <span class="kpi-label">Full Success</span>
+                            </div>
+                        </div>
+                        <div class="kpi-item">
+                            <div class="kpi-square bg-warning text-white">
+                                <span class="kpi-number">{{ processed_partial }}</span>
+                                <span class="kpi-label">Partial Success</span>
+                            </div>
+                        </div>
+                        <div class="kpi-item">
+                            <div class="kpi-square bg-danger text-white">
+                                <span class="kpi-number">{{ processed_failed }}</span>
+                                <span class="kpi-label">Failed</span>
+                            </div>
+                        </div>
+                        <div class="kpi-item">
+                            <div class="kpi-square bg-secondary text-white">
+                                <span class="kpi-number">{{ "%.0f"|format((processed_success / total_papers * 100) if total_papers > 0 else 0) }}%</span>
+                                <span class="kpi-label">Success Rate</span>
+                            </div>
+                        </div>
+                        <div class="kpi-item">
+                            <div class="kpi-square bg-info text-white">
+                                <span class="kpi-number">{{ papers|selectattr('screening_action', 'equalto', 'include')|list|length }}</span>
+                                <span class="kpi-label">For Screening</span>
+                            </div>
+                        </div>
+                        <div class="kpi-item">
+                            <button type="button" id="extractAllBtn" class="btn btn-primary kpi-button" onclick="startExtractAll()">
+                                <i class="fas fa-cogs"></i><br><small>Extract All Texts</small>
+                            </button>
+                        </div>
+                        <div class="kpi-item">
+                            <button type="button" id="retryAllBtn" class="btn btn-warning kpi-button" onclick="startRetryAll()">
+                                <i class="fas fa-redo"></i><br><small>Retry All Extractions</small>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar (hidden by default) -->
+                    <div id="extractionProgress" class="mt-3" style="display: none;">
+                        <div class="progress">
+                            <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%">
+                                <span id="progressText">0%</span>
+                            </div>
+                        </div>
+                        <small id="progressStatus" class="text-muted">Preparing text extraction...</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Papers Processing Status -->
+            <form method="POST" action="{{ url_for('save_screening_actions') }}">
+                <div class="card">
+                    <div class="card-header py-2">
+                        <h6 class="mb-0">📚 Text Extraction Status</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover mb-0 table-fixed">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th style="width: 50px;">ID</th>
+                                        <th style="width: 35%;">Title</th>
+                                        <th style="width: 80px;">PDF Status</th>
+                                        <th style="width: 100px;">Extraction Status</th>
+                                        <th style="width: 150px;">Sections Extracted</th>
+                                        <th style="width: 100px;">Quality Metrics</th>
+                                        <th style="width: 80px;">JSON Output</th>
+                                        <th style="width: 120px;">Actions</th>
+                                    </tr>
+                                </thead>
+                            <tbody>
+                                {% for paper in papers %}
+                                <tr>
+                                    <td class="text-center">
+                                        <span class="badge badge-primary badge-sm">{{ paper.paper_id }}</span>
+                                    </td>
+                                    <td>
+                                        <strong class="text-primary">{{ paper.title }}</strong>
+                                    </td>
+                                    <td class="text-center">
+                                        {% if paper.is_downloaded %}
+                                            <span class="badge badge-success">✅ Ready</span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">⏳ No PDF</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if paper.get('extraction_status') == 'success' %}
+                                            <span class="badge badge-success">✅ Success</span>
+                                        {% elif paper.get('extraction_status') == 'partial' %}
+                                            <span class="badge badge-warning">⚠️ Partial</span>
+                                        {% elif paper.get('extraction_status') == 'failed' %}
+                                            <span class="badge badge-danger">❌ Failed</span>
+                                        {% elif paper.get('extraction_status') == 'processing' %}
+                                            <span class="badge badge-info">🔄 Processing</span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">⏳ Pending</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if paper.get('extracted_sections') %}
+                                            {% for section in paper.extracted_sections %}
+                                                <span class="badge badge-success badge-sm mr-1 mb-1" title="{{ section }}">{{ section }}</span>
+                                            {% endfor %}
+                                        {% else %}
+                                            <small class="text-muted">-</small>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if paper.get('word_count', 0) > 0 or paper.get('character_count', 0) > 0 %}
+                                            <div style="font-size: 11px;">
+                                                <div><strong>{{ "{:,}".format(paper.get('word_count', 0)) }}</strong> words</div>
+                                                <div><strong>{{ "{:,}".format(paper.get('character_count', 0)) }}</strong> chars</div>
+                                                {% if paper.get('pages_count', 0) > 0 %}
+                                                    <div><strong>{{ paper.pages_count }}</strong> pages</div>
+                                                {% endif %}
+                                            </div>
+                                        {% else %}
+                                            <small class="text-muted">-</small>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if paper.get('json_file') %}
+                                            <a href="/extracted_texts/{{ paper.json_file }}" target="_blank"
+                                               class="btn btn-xs btn-success" title="View JSON">
+                                                📄 JSON
+                                            </a>
+                                        {% else %}
+                                            <small class="text-muted">-</small>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if paper.is_downloaded and not paper.get('extraction_status') %}
+                                            <button class="btn btn-primary btn-xs mb-1" onclick="extractSingle('{{ paper.paper_id }}')">
+                                                Extract
+                                            </button>
+                                        {% elif paper.get('extraction_status') == 'failed' %}
+                                            <button class="btn btn-warning btn-xs mb-1" onclick="extractSingle('{{ paper.paper_id }}')">
+                                                Retry
+                                            </button>
+                                        {% endif %}
+
+                                        {% if paper.get('extraction_status') in ['success', 'partial', 'failed'] %}
+                                            <div style="font-size: 10px; margin-top: 2px;">
+                                                <select class="form-control form-control-sm" style="font-size: 10px;" name="screening_action_{{ paper.paper_id }}">
+                                                    {% set saved_action = paper.get('screening_action', '') %}
+                                                    {% if saved_action %}
+                                                        <!-- Use saved action -->
+                                                        <option value="include" {% if saved_action == 'include' %}selected{% endif %}>✅ Consider for screening</option>
+                                                        <option value="exclude" {% if saved_action == 'exclude' %}selected{% endif %}>❌ Not consider for screening</option>
+                                                    {% elif paper.get('extraction_status') == 'partial' %}
+                                                        <!-- Default for partial: exclude -->
+                                                        <option value="exclude" selected>❌ Not consider for screening</option>
+                                                        <option value="include">✅ Consider for screening</option>
+                                                    {% elif paper.get('extraction_status') == 'failed' %}
+                                                        <!-- Default for failed: exclude -->
+                                                        <option value="exclude" selected>❌ Not consider for screening</option>
+                                                        <option value="include">✅ Consider for screening</option>
+                                                    {% else %}
+                                                        <!-- Default for success: include -->
+                                                        <option value="include" selected>✅ Consider for screening</option>
+                                                        <option value="exclude">❌ Not consider for screening</option>
+                                                    {% endif %}
+                                                </select>
+                                            </div>
+                                        {% elif not paper.is_downloaded %}
+                                            <small class="text-muted">No PDF</small>
+                                        {% else %}
+                                            <small class="text-muted">Pending</small>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Save Actions Button -->
+                {% if papers %}
+                <div class="card-footer text-center">
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fas fa-save"></i> Save Screening Actions
+                    </button>
+                    <small class="text-muted d-block mt-2">
+                        Save your decisions about which papers to include in the screening process
+                    </small>
+                </div>
+                {% endif %}
+            </div>
+            </form>
+
+            {% if not papers %}
+            <div class="text-center py-5">
+                <h3 class="text-muted">No papers found</h3>
+                <p class="text-muted">Please complete the download process first.</p>
+                <a href="{{ url_for('download_management') }}" class="btn btn-primary">Go to Downloads</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function startExtractAll() {
+    const btn = document.getElementById('extractAllBtn');
+    const progress = document.getElementById('extractionProgress');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const progressStatus = document.getElementById('progressStatus');
+
+    // Disable button and show progress
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><br><small>Processing...</small>';
+    progress.style.display = 'block';
+
+    // Start the extraction process
+    fetch('{{ url_for("start_text_extraction") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            // Start polling for progress
+            pollExtractionProgress();
+        } else {
+            throw new Error('Extraction failed to start');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        resetExtractionButton();
+        alert('Failed to start text extraction process');
+    });
+}
+
+function startRetryAll() {
+    const btn = document.getElementById('retryAllBtn');
+    const progress = document.getElementById('extractionProgress');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const progressStatus = document.getElementById('progressStatus');
+
+    // Confirm retry action
+    if (!confirm('This will re-process ALL papers (including successful ones). Are you sure?')) {
+        return;
+    }
+
+    // Disable both buttons and show progress
+    btn.disabled = true;
+    document.getElementById('extractAllBtn').disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><br><small>Retrying...</small>';
+    progress.style.display = 'block';
+    progressStatus.textContent = 'Retrying text extraction for all papers...';
+
+    // Start the retry process
+    fetch('{{ url_for("retry_all_text_extraction") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            // Start polling for progress
+            pollExtractionProgress();
+        } else {
+            throw new Error('Retry extraction failed to start');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        resetExtractionButton();
+        alert('Failed to start retry text extraction process');
+    });
+}
+
+function extractSingle(paperId) {
+    fetch(`{{ url_for("extract_single_paper") }}?paper_id=${paperId}`, {
+        method: 'POST'
+    })
+    .then(response => {
+        if (response.ok) {
+            // Refresh the page to show updated status
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            alert('Failed to start extraction for this paper');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to start extraction for this paper');
+    });
+}
+
+function pollExtractionProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const progressStatus = document.getElementById('progressStatus');
+
+    // Simulate progress (in a real implementation, you'd poll a status endpoint)
+    let progress = 0;
+    const interval = setInterval(() => {
+        progress += Math.random() * 10 + 5; // Random progress increment
+
+        if (progress >= 100) {
+            progress = 100;
+            clearInterval(interval);
+
+            progressBar.style.width = '100%';
+            progressText.textContent = '100%';
+            progressStatus.textContent = 'Text extraction completed! Refreshing page...';
+
+            // Refresh the page after completion
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } else {
+            progressBar.style.width = progress + '%';
+            progressText.textContent = Math.round(progress) + '%';
+            progressStatus.textContent = `Extracting text from PDFs... (${Math.round(progress)}% complete)`;
+        }
+    }, 1500);
+}
+
+function resetExtractionButton() {
+    const extractBtn = document.getElementById('extractAllBtn');
+    const retryBtn = document.getElementById('retryAllBtn');
+    const progress = document.getElementById('extractionProgress');
+
+    extractBtn.disabled = false;
+    extractBtn.innerHTML = '<i class="fas fa-cogs"></i><br><small>Extract All Texts</small>';
+
+    retryBtn.disabled = false;
+    retryBtn.innerHTML = '<i class="fas fa-redo"></i><br><small>Retry All Extractions</small>';
+
+    progress.style.display = 'none';
+}
+</script>
+
+<style>
+/* KPI Container - Horizontal Layout */
+.kpi-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.kpi-item {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.kpi-square {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 15px 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    height: 80px;
+    width: 100%;
+    text-align: center;
+    max-width: 150px;
+}
+
+.kpi-number {
+    font-size: 1.8rem;
+    font-weight: bold;
+    line-height: 1;
+    margin-bottom: 3px;
+}
+
+.kpi-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.1;
+    opacity: 0.9;
+}
+
+.kpi-button {
+    height: 80px;
+    width: 100%;
+    max-width: 150px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.8rem;
+}
+
+.table-fixed {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.table-fixed th,
+.table-fixed td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.table-fixed td:nth-child(2) {
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+.table-sm td, .table-sm th {
+    padding: 0.3rem;
+    font-size: 0.85em;
+    line-height: 1.3;
+    vertical-align: middle;
+}
+
+.btn-xs {
+    padding: 0.1rem 0.3rem;
+    font-size: 0.7rem;
+    line-height: 1.2;
+    border-radius: 0.2rem;
+}
+
+.badge-sm {
+    font-size: 0.7em;
+    padding: 0.2em 0.4em;
+}
+</style>
+{% endblock %}

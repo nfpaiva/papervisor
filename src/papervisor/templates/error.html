@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Error - Papervisor{% endblock %}
+
+{% block content %}
+<div style="text-align: center; padding: 3rem;">
+    <h1 style="color: var(--danger-color); margin-bottom: 1rem;">⚠️ Error</h1>
+    <div style="background: var(--white); padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 600px; margin: 0 auto;">
+        <p style="font-size: 1.1rem; margin-bottom: 1rem;">{{ error }}</p>
+        <a href="{{ url_for('index') }}" class="btn btn-primary">🏠 Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}

@@ -173,3 +173,7 @@ yarn-error.log*
 data/temp_results/
 analysis_output/
 *.log
+
+# Downloaded PDF files (can be large)
+*.pdf
+data/literature_reviews/*/pdfs/

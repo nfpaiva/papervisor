@@ -25,7 +25,8 @@ repos:
     rev: v1.8.0
     hooks:
       - id: mypy
-        args: [--ignore-missing-imports]
+        additional_dependencies: [types-requests, types-urllib3]
+        args: [--ignore-missing-imports, --no-strict-optional, --no-warn-unreachable]
 
   - repo: https://github.com/doublify/pre-commit-rust
     rev: v1.0

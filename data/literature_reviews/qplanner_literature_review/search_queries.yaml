@@ -1,13 +1,13 @@
 project_info:
   project_id: "qplanner_literature_review"
-  title: "Literature Review for QpLanner"
+  title: "Literature Review for QPlanner"
   description: "Comprehensive literature review on contact center agent assignment and machine learning applications"
   created_date: "2025-08-01"
   status: "in_progress"
   lead_researcher: "Nuno Paiva"
 
 search_queries:
-  - id: "qplanner_q1_contact_center_ml"
+  - id: "q1"
     topic: "Customer-Agent Matching in Call Centers"
     query: '("call center" OR "contact center") AND ("agent assignment" OR "agent-customer matching") AND ("machine learning" OR "predictive model")'
     executed_date: "2025-08-01"
@@ -20,10 +20,10 @@ search_queries:
       maximum_results: 20
       include_citations: "Y"
       only_review_articles: "NO"
-    results_file: "lit-review-results-qplanner-q1.csv"
+    results_file: "q1.csv"
     notes: "Primary search focusing on machine learning applications in contact center agent assignment"
 
-  - id: "qplanner_q2_queue_optimization"
+  - id: "q2"
     topic: "Queue Optimization in Call Centers"
     query: '("queue management" OR "call scheduling") AND ("optimization" OR "ILP" OR "linear programming") AND ("call center")'
     executed_date: "2025-08-01"
@@ -36,10 +36,10 @@ search_queries:
       maximum_results: 20
       include_citations: "Y"
       only_review_articles: "NO"
-    results_file: "lit-review-results-qplanner-q2.csv"
+    results_file: "q2.csv"
     notes: "Secondary search focusing on queue management and optimization techniques in call centers"
 
-  - id: "qplanner_q3_call_duration_prediction"
+  - id: "q3"
     topic: "Predicting Call Duration or Agent Availability"
     query: '("call duration prediction" OR "agent availability") AND ("call center")'
     executed_date: "2025-08-01"
@@ -52,10 +52,10 @@ search_queries:
       maximum_results: 20
       include_citations: "Y"
       only_review_articles: "NO"
-    results_file: "lit-review-results-qplanner-q3.csv"
+    results_file: "q3.csv"
     notes: "Search focusing on predictive models for call duration and agent availability forecasting"
 
-  - id: "qplanner_q4_customer_retention"
+  - id: "q4"
     topic: "Customer Retention via Intelligent Routing"
     query: '("customer retention" OR "churn prediction") AND ("agent recommendation" OR "call routing") AND ("telecom" OR "call center")'
     executed_date: "2025-08-01"
@@ -68,13 +68,13 @@ search_queries:
       maximum_results: 20
       include_citations: "Y"
       only_review_articles: "NO"
-    results_file: "lit-review-results-qplanner-q4.csv"
+    results_file: "q4.csv"
     notes: "Search focusing on intelligent call routing strategies for customer retention and churn prevention"
 
-  - id: "qplanner_q5_fairness_routing"
-    topic: "Fairness in Call Routing"
-    query: '("call center" OR "queue system") AND ("fairness" OR "wait time prioritization" OR "aging policy") AND ("optimization")'
-    executed_date: "2025-08-01"
+  - id: "q5"
+    topic: "Call Center Routing Theory and Skill-Based Assignment"
+    query: '("call center" OR "contact center") AND ("skill-based routing" OR "dynamic assignment") AND ("queueing theory" OR "routing optimization")'
+    executed_date: "2025-08-09"
     extractor: "Publish or Perish"
     extractor_version: "8.0"
     databases: ["Google Scholar"]
@@ -84,5 +84,37 @@ search_queries:
       maximum_results: 20
       include_citations: "Y"
       only_review_articles: "NO"
-    results_file: "lit-review-results-qplanner-q5.csv"
-    notes: "Search focusing on fairness algorithms and policies in call center queue management and routing"
+    results_file: "q5.csv"
+    notes: "Search covering foundational queueing and routing theory for contact centers with skill-based or dynamic assignment"
+
+  - id: "q6"
+    topic: "Real-Time Decision Systems in Contact Centers"
+    query: '"real-time decision making" AND ("machine learning" OR "optimization") AND ("call center" OR "contact center")'
+    executed_date: "2025-08-09"
+    extractor: "Publish or Perish"
+    extractor_version: "8.0"
+    databases: ["Google Scholar"]
+    filters:
+      language: "English"
+      patents: "NO"
+      maximum_results: 20
+      include_citations: "Y"
+      only_review_articles: "NO"
+    results_file: "q6.csv"
+    notes: "Search focusing on real-time operational decision-making systems using machine learning or optimization in call center environments"
+
+  - id: "q7"
+    topic: "Switchback and Time-Randomized Experiments in Operational Systems"
+    query: '("switchback experiment" OR "time-randomized experiment") AND ("operational setting" OR "production environment" OR "real-time decision")'
+    executed_date: "2025-08-09"
+    extractor: "Publish or Perish"
+    extractor_version: "8.0"
+    databases: ["Google Scholar"]
+    filters:
+      language: "English"
+      patents: "NO"
+      maximum_results: 20
+      include_citations: "Y"
+      only_review_articles: "NO"
+    results_file: "q7.csv"
+    notes: "Search covering experimental designs such as switchback or time-randomized trials for evaluating real-time decision systems in live environments"
