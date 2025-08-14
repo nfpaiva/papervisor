@@ -7,7 +7,8 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  test:
+  ci-checks:
+    name: ci-checks-(Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -26,66 +27,29 @@ jobs:
         python -m pip install --upgrade pip
         pip install -e .[dev]
 
-    - name: Lint with flake8
+    - name: Run ruff (pre-commit)
+      run: pre-commit run ruff --all-files
+
+    - name: Run black (pre-commit)
+      run: pre-commit run black --all-files
+
+    - name: Run mypy (pre-commit)
+      run: pre-commit run mypy --all-files
+
+    - name: Run hygiene pre-commit hooks
       run: |
-        # Stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # Exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        pre-commit run trailing-whitespace --all-files
+        pre-commit run end-of-file-fixer --all-files
+        pre-commit run check-yaml --all-files
+        pre-commit run check-toml --all-files
+        pre-commit run check-added-large-files --all-files
+        pre-commit run check-merge-conflict --all-files
+        pre-commit run debug-statements --all-files
 
-    - name: Format check with black
-      run: |
-        black --check --diff .
+    - name: Run pytest (pre-commit)
+      run: pre-commit run pytest --all-files
 
-    - name: Type check with mypy
-      run: |
-        mypy src/ --ignore-missing-imports
-
-    - name: Test with pytest
-      run: |
-        pytest tests/ -v
-      # Continue on test failure for now since we don't have tests yet
-      continue-on-error: true
-
-  rust-check:
-    runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.message, '[rust]') || contains(github.event.pull_request.title, '[rust]')
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@stable
-
-    - name: Check Rust formatting
-      run: cargo fmt --check
-      continue-on-error: true
-
-    - name: Lint Rust code
-      run: cargo clippy -- -D warnings
-      continue-on-error: true
-
-    - name: Test Rust code
-      run: cargo test
-      continue-on-error: true
-
-  pre-commit:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.12"
-
-    - name: Install pre-commit
-      run: |
-        python -m pip install --upgrade pip
-        pip install pre-commit
-
-    - name: Run pre-commit hooks
-      run: |
-        pre-commit run --all-files
-      continue-on-error: true
+    - name: Xenon complexity gate
+      run: xenon --max-absolute C --max-modules B --max-average A --exclude src/papervisor/pdf_downloader.py,src/papervisor/cli.py,src/papervisor/web_server.py src/papervisor
+    - name: Radon maintainability/complexity summary
+      run: bash -c 'radon mi src/ | grep -E "^src/|Average" && radon cc src/ -s | grep -E "^src/|Average"'

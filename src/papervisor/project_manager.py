@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-import yaml  # type: ignore
+import yaml
 
 from .search_query import SearchQuery
 
@@ -101,9 +101,27 @@ class ProjectManager:
 
         queries = []
         for query_data in data.get("search_queries", []):
-            # Add project context to each query
-            query_data["project_id"] = project_id
-            queries.append(SearchQuery(**query_data))
+            try:
+                # Add project context to each query
+                query_data["project_id"] = project_id
+
+                # Ensure required fields have default values if missing
+                required_fields = {
+                    "results_file": f"{query_data.get('id', 'unknown')}.csv",
+                    "extractor_version": "unknown",
+                    "databases": [],
+                    "filters": {},
+                }
+
+                for field, default_value in required_fields.items():
+                    if field not in query_data:
+                        query_data[field] = default_value
+
+                queries.append(SearchQuery(**query_data))
+            except Exception as e:
+                print(f"Error loading query {query_data.get('id', 'unknown')}: {e}")
+                # Skip this query and continue with others
+                continue
 
         return queries
 

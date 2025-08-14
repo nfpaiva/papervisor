@@ -10,7 +10,7 @@
                 <h1>📄 Text Extraction & Processing</h1>
                 <div>
                     <span class="badge badge-info">Step 3 of 3</span>
-                    <a href="{{ url_for('download_management') }}" class="btn btn-outline-secondary btn-sm">
+                    <a href="{{ url_for('download_management', project_id=project_id) }}" class="btn btn-outline-secondary btn-sm">
                         <i class="fas fa-arrow-left"></i> Back to Downloads
                     </a>
                 </div>
@@ -148,6 +148,14 @@
                                                 {% if paper.get('pages_count', 0) > 0 %}
                                                     <div><strong>{{ paper.pages_count }}</strong> pages</div>
                                                 {% endif %}
+                                                {% if paper.get('section_extraction_percentage', 0) > 0 %}
+                                                    <div>
+                                                        <span class="badge {% if paper.section_extraction_percentage >= 70 %}badge-success{% elif paper.section_extraction_percentage >= 40 %}badge-warning{% else %}badge-danger{% endif %}"
+                                                              title="Percentage of raw text successfully extracted into sections">
+                                                            {{ paper.section_extraction_percentage }}% extracted
+                                                        </span>
+                                                    </div>
+                                                {% endif %}
                                             </div>
                                         {% else %}
                                             <small class="text-muted">-</small>
@@ -155,7 +163,7 @@
                                     </td>
                                     <td class="text-center">
                                         {% if paper.get('json_file') %}
-                                            <a href="/extracted_texts/{{ paper.json_file }}" target="_blank"
+                                            <a href="{{ url_for('serve_extracted_text', filename=paper.json_file, project_id=project_id) }}" target="_blank"
                                                class="btn btn-xs btn-success" title="View JSON">
                                                 📄 JSON
                                             </a>
@@ -213,12 +221,9 @@
                 <!-- Save Actions Button -->
                 {% if papers %}
                 <div class="card-footer text-center">
-                    <button type="submit" class="btn btn-success btn-lg">
-                        <i class="fas fa-save"></i> Save Screening Actions
-                    </button>
-                    <small class="text-muted d-block mt-2">
-                        Save your decisions about which papers to include in the screening process
-                    </small>
+                    <a href="{{ url_for('screening', project_id=project_id) }}" class="btn btn-success btn-lg">
+                        <i class="fas fa-check"></i> Go to Screening
+                    </a>
                 </div>
                 {% endif %}
             </div>
@@ -228,7 +233,7 @@
             <div class="text-center py-5">
                 <h3 class="text-muted">No papers found</h3>
                 <p class="text-muted">Please complete the download process first.</p>
-                <a href="{{ url_for('download_management') }}" class="btn btn-primary">Go to Downloads</a>
+                <a href="{{ url_for('download_management', project_id=project_id) }}" class="btn btn-primary">Go to Downloads</a>
             </div>
             {% endif %}
         </div>
@@ -249,7 +254,7 @@ function startExtractAll() {
     progress.style.display = 'block';
 
     // Start the extraction process
-    fetch('{{ url_for("start_text_extraction") }}', {
+    fetch('{{ url_for("start_text_extraction") }}?project_id={{ project_id }}', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -290,7 +295,7 @@ function startRetryAll() {
     progressStatus.textContent = 'Retrying text extraction for all papers...';
 
     // Start the retry process
-    fetch('{{ url_for("retry_all_text_extraction") }}', {
+    fetch('{{ url_for("retry_all_text_extraction") }}?project_id={{ project_id }}', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -312,7 +317,7 @@ function startRetryAll() {
 }
 
 function extractSingle(paperId) {
-    fetch(`{{ url_for("extract_single_paper") }}?paper_id=${paperId}`, {
+    fetch(`{{ url_for("extract_single_paper") }}?paper_id=${paperId}&project_id={{ project_id }}`, {
         method: 'POST'
     })
     .then(response => {

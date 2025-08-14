@@ -1,0 +1,295 @@
+2025-08-12 09:45:56,559 - INFO - === PDF Downloader Logger Initialized ===
+2025-08-12 09:45:56,560 - INFO - Log file path: data/literature_reviews/demo_contact_center_ai/pdfs/automatic/reports/download_log.txt
+2025-08-12 09:45:56,560 - INFO - Reports directory exists: True
+2025-08-12 09:45:56,560 - INFO - Reports directory writable: True
+2025-08-12 09:45:56,560 - INFO - PDFDownloader initialization completed successfully.
+2025-08-12 09:46:09,619 - INFO - === PDF Downloader Logger Initialized ===
+2025-08-12 09:46:09,619 - INFO - Log file path: data/literature_reviews/demo_contact_center_ai/pdfs/automatic/reports/download_log.txt
+2025-08-12 09:46:09,619 - INFO - Reports directory exists: True
+2025-08-12 09:46:09,619 - INFO - Reports directory writable: True
+2025-08-12 09:46:09,619 - INFO - PDFDownloader initialization completed successfully.
+2025-08-12 09:46:09,620 - INFO - Processing paper 0:
+2025-08-12 09:46:09,620 - INFO -   Title: Predicting call center performance with machine learning
+2025-08-12 09:46:09,620 - INFO -   Authors: S Li, Q Wang, G Koole
+2025-08-12 09:46:09,620 - INFO -   Year: 2018
+2025-08-12 09:46:09,620 - INFO - Generated filename for paper 0: 0_Li_2018_Predicting_call_center_performance.pdf
+2025-08-12 09:46:09,620 - INFO - Trying to download from fulltext_url: https://www.researchgate.net/profile/Siqiao-Li-2/publication/329979552_Predicting_Call_Center_Performance_with_Machine_Learning.pdf
+2025-08-12 09:46:09,723 - INFO - Response from fulltext_url: 403, Content-Type: text/html; charset=UTF-8
+2025-08-12 09:46:09,724 - INFO - Trying to download from article_url: https://link.springer.com/chapter/10.1007/978-3-030-04726-9_19
+2025-08-12 09:46:09,853 - INFO - === PDF Downloader Logger Initialized ===
+2025-08-12 09:46:09,853 - INFO - Log file path: data/literature_reviews/demo_contact_center_ai/pdfs/automatic/reports/download_log.txt
+2025-08-12 09:46:09,854 - INFO - Reports directory exists: True
+2025-08-12 09:46:09,854 - INFO - Reports directory writable: True
+2025-08-12 09:46:09,854 - INFO - PDFDownloader initialization completed successfully.
+2025-08-12 09:46:10,280 - INFO - Response from article_url: 200, Content-Type: text/html; charset=utf-8
+2025-08-12 09:46:10,281 - INFO - Trying to download from doi_direct: https://doi.org/10.1007/978-3-030-04726-9_19
+2025-08-12 09:46:10,837 - INFO - Response from doi_direct: 200, Content-Type: text/html; charset=utf-8
+2025-08-12 09:46:11,038 - INFO - Processing paper 1:
+2025-08-12 09:46:11,038 - INFO -   Title: Intelligent call routing: optimizing contact center throughput
+2025-08-12 09:46:11,038 - INFO -   Authors: AR Ali
+2025-08-12 09:46:11,038 - INFO -   Year: 2011
+2025-08-12 09:46:11,038 - INFO - Generated filename for paper 1: 1_Ali_2011_Intelligent_call_routing_optimizing.pdf
+2025-08-12 09:46:11,038 - INFO - Trying to download from fulltext_url: https://dl.acm.org/doi/pdf/10.1145/2237827.2237832
+2025-08-12 09:46:11,112 - INFO - Response from fulltext_url: 403, Content-Type: text/html; charset=UTF-8
+2025-08-12 09:46:11,113 - INFO - Trying to download from article_url: https://dl.acm.org/doi/abs/10.1145/2237827.2237832
+2025-08-12 09:46:11,158 - INFO - Response from article_url: 403, Content-Type: text/html; charset=UTF-8
+2025-08-12 09:46:11,159 - INFO - Trying to download from doi_direct: https://doi.org/10.1145/2237827.2237832
+2025-08-12 09:46:11,310 - INFO - Response from doi_direct: 403, Content-Type: text/html; charset=UTF-8
+2025-08-12 09:46:11,511 - INFO - Processing paper 2:
+2025-08-12 09:46:11,511 - INFO -   Title: Adaptive call center workforce management with deep neural network and reinforcement learning
+2025-08-12 09:46:11,511 - INFO -   Authors: W Kumwilaisak, S Phikulngoen, J Piriyataravet, N Wattanapongsakorn
+2025-08-12 09:46:11,511 - INFO -   Year: 2022
+2025-08-12 09:46:11,511 - INFO - Generated filename for paper 2: 2_Kumwilaisak_2022_Adaptive_call_center_workforce.pdf
+2025-08-12 09:46:11,512 - INFO - Trying to download from fulltext_url: https://ieeexplore.ieee.org/iel7/6287639/6514899/09737504.pdf
+2025-08-12 09:46:12,418 - INFO - Response from fulltext_url: 200, Content-Type: text/html;charset=UTF-8
+2025-08-12 09:46:12,418 - INFO - Trying to download from article_url: https://ieeexplore.ieee.org/abstract/document/9737504/
+2025-08-12 09:46:13,159 - INFO - Response from article_url: 200, Content-Type: text/html;charset=UTF-8
+2025-08-12 09:46:13,159 - INFO - Trying to download from ieee_stamp: https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9737504
+2025-08-12 09:46:13,414 - INFO - Response from ieee_stamp: 200, Content-Type: text/html;charset=UTF-8
+2025-08-12 09:46:13,414 - INFO - Trying to download from ieee_pdf: https://ieeexplore.ieee.org/stampPDF/getPDF.jsp?tp=&arnumber=9737504
+2025-08-12 09:46:17,869 - INFO - Response from ieee_pdf: 200, Content-Type: application/pdf
+2025-08-12 09:46:17,872 - INFO - Successfully downloaded PDF from ieee_pdf to data/literature_reviews/demo_contact_center_ai/pdfs/automatic/2_Kumwilaisak_2022_Adaptive_call_center_workforce.pdf
+2025-08-12 09:46:18,073 - INFO - Processing paper 3:
+2025-08-12 09:46:18,073 - INFO -   Title: Improving customer routing in contact centers: An automated triage design based on text analytics
+2025-08-12 09:46:18,073 - INFO -   Authors: N Ilk, G Shang, P Goes
+2025-08-12 09:46:18,073 - INFO -   Year: 2020
+2025-08-12 09:46:18,073 - INFO - Generated filename for paper 3: 3_Ilk_2020_Improving_customer_routing.pdf
+2025-08-12 09:46:18,073 - INFO - Trying to download from fulltext_url: nan
+2025-08-12 09:46:18,274 - INFO - Processing paper 4:
+2025-08-12 09:46:18,274 - INFO -   Title: Real-time decision support systems for call center management
+2025-08-12 09:46:18,274 - INFO -   Authors: M Rahman, A Kumar
+2025-08-12 09:46:18,274 - INFO -   Year: 2019
+2025-08-12 09:46:18,274 - INFO - Generated filename for paper 4: 4_Rahman_2019_Realtime_decision_support_systems.pdf
+2025-08-12 09:46:18,475 - INFO - Processing paper 5:
+2025-08-12 09:46:18,475 - INFO -   Title: Machine learning for real-time call center optimization
+2025-08-12 09:46:18,475 - INFO -   Authors: J Zhang, L Wang, H Chen
+2025-08-12 09:46:18,475 - INFO -   Year: 2021
+2025-08-12 09:46:18,476 - INFO - Generated filename for paper 5: 5_Zhang_2021_Machine_learning_for_realtime.pdf
+2025-08-12 09:46:18,476 - INFO - Trying to download from fulltext_url: nan
+2025-08-12 09:46:18,676 - INFO - Processing paper 6:
+2025-08-12 09:46:18,676 - INFO -   Title: Predictive analytics for real-time contact center decision making
+2025-08-12 09:46:18,677 - INFO -   Authors: D Smith, K Johnson
+2025-08-12 09:46:18,677 - INFO -   Year: 2020
+2025-08-12 09:46:18,677 - INFO - Generated filename for paper 6: 6_Smith_2020_Predictive_analytics_for_realtime.pdf
+2025-08-12 09:46:18,677 - INFO - Trying to download from fulltext_url: nan
+2025-08-12 09:46:18,877 - INFO - Processing paper 7:
+2025-08-12 09:46:18,878 - INFO -   Title: Online learning algorithms for dynamic call center management
+2025-08-12 09:46:18,878 - INFO -   Authors: R Patel, S Gupta, M Sharma
+2025-08-12 09:46:18,878 - INFO -   Year: 2017
+2025-08-12 09:46:18,878 - INFO - Generated filename for paper 7: 7_Patel_2017_Online_learning_algorithms_for.pdf
+2025-08-12 09:46:18,878 - INFO - Trying to download from fulltext_url: nan
+2025-08-12 09:46:19,079 - INFO - Processing paper 8:
+2025-08-12 09:46:19,079 - INFO -   Title: Real-time workforce optimization in contact centers using AI
+2025-08-12 09:46:19,079 - INFO -   Authors: T Anderson, B Miller
+2025-08-12 09:46:19,079 - INFO -   Year: 2023
+2025-08-12 09:46:19,079 - INFO - Generated filename for paper 8: 8_Anderson_2023_Realtime_workforce_optimization.pdf
+2025-08-12 09:46:19,280 - INFO - Processing paper 9:
+2025-08-12 09:46:19,280 - INFO -   Title: Dynamic decision making in call center environments: A machine learning approach
+2025-08-12 09:46:19,280 - INFO -   Authors: E Wilson, C Davis
+2025-08-12 09:46:19,280 - INFO -   Year: 2019
+2025-08-12 09:46:19,280 - INFO - Generated filename for paper 9: 9_Wilson_2019_Dynamic_decision_making.pdf
+2025-08-12 09:46:19,281 - INFO - Trying to download from fulltext_url: nan
+2025-08-12 09:46:19,481 - INFO - Processing paper 10:
+2025-08-12 09:46:19,481 - INFO -   Title: Real-time call routing optimization using deep reinforcement learning
+2025-08-12 09:46:19,481 - INFO -   Authors: Y Liu, X Wang, Z Chen
+2025-08-12 09:46:19,482 - INFO -   Year: 2022
+2025-08-12 09:46:19,482 - INFO - Generated filename for paper 10: 10_Liu_2022_Realtime_call_routing_optimization.pdf
+2025-08-12 09:46:19,482 - INFO - Trying to download from fulltext_url: nan
+2025-08-12 09:46:19,492 - INFO - === PDF Downloader Logger Initialized ===
+2025-08-12 09:46:19,492 - INFO - Log file path: data/literature_reviews/demo_contact_center_ai/pdfs/automatic/reports/download_log.txt
+2025-08-12 09:46:19,492 - INFO - Reports directory exists: True
+2025-08-12 09:46:19,492 - INFO - Reports directory writable: True
+2025-08-12 09:46:19,492 - INFO - PDFDownloader initialization completed successfully.
+2025-08-12 09:46:19,682 - INFO - Processing paper 11:
+2025-08-12 09:46:19,683 - INFO -   Title: Intelligent agent assignment in real-time call center operations
+2025-08-12 09:46:19,683 - INFO -   Authors: A Thompson, R Brown
+2025-08-12 09:46:19,683 - INFO -   Year: 2018
+2025-08-12 09:46:19,683 - INFO - Generated filename for paper 11: 11_Thompson_2018_Intelligent_agent_assignment.pdf
+2025-08-12 09:46:19,683 - INFO - Trying to download from fulltext_url: nan
+2025-08-12 09:46:19,884 - INFO - Processing paper 12:
+2025-08-12 09:46:19,884 - INFO -   Title: Stream processing for real-time contact center analytics
+2025-08-12 09:46:19,884 - INFO -   Authors: F Garcia, M Rodriguez
+2025-08-12 09:46:19,884 - INFO -   Year: 2021
+2025-08-12 09:46:19,884 - INFO - Generated filename for paper 12: 12_Garcia_2021_Stream_processing_for_realtime.pdf
+2025-08-12 09:46:19,885 - INFO - Trying to download from fulltext_url: nan
+2025-08-12 09:46:20,085 - INFO - Processing paper 13:
+2025-08-12 09:46:20,085 - INFO -   Title: Low-latency decision systems for call center management
+2025-08-12 09:46:20,085 - INFO -   Authors: P Lee, S Kim, J Park
+2025-08-12 09:46:20,085 - INFO -   Year: 2020
+2025-08-12 09:46:20,086 - INFO - Generated filename for paper 13: 13_Lee_2020_Lowlatency_decision_systems_for.pdf
+2025-08-12 09:46:20,286 - INFO - Processing paper 14:
+2025-08-12 09:46:20,286 - INFO -   Title: Adaptive call center management using online machine learning
+2025-08-12 09:46:20,287 - INFO -   Authors: G Taylor, H White
+2025-08-12 09:46:20,287 - INFO -   Year: 2023
+2025-08-12 09:46:20,287 - INFO - Generated filename for paper 14: 14_Taylor_2023_Adaptive_call_center_management.pdf
+2025-08-12 09:46:20,287 - INFO - Trying to download from fulltext_url: nan
+2025-08-12 09:46:20,488 - INFO - Processing paper 15:
+2025-08-12 09:46:20,488 - INFO -   Title: Real-time performance monitoring in contact centers using AI
+2025-08-12 09:46:20,488 - INFO -   Authors: O Martinez, L Fernandez
+2025-08-12 09:46:20,488 - INFO -   Year: 2019
+2025-08-12 09:46:20,488 - INFO - Generated filename for paper 15: 15_Martinez_2019_Realtime_performance_monitoring.pdf
+2025-08-12 09:46:20,488 - INFO - Trying to download from fulltext_url: nan
+2025-08-12 09:46:20,689 - INFO - Processing paper 16:
+2025-08-12 09:46:20,689 - INFO -   Title: Machine learning for real-time call center workforce planning
+2025-08-12 09:46:20,689 - INFO -   Authors: K Nakamura, T Suzuki
+2025-08-12 09:46:20,689 - INFO -   Year: 2017
+2025-08-12 09:46:20,689 - INFO - Generated filename for paper 16: 16_Nakamura_2017_Machine_learning_for_realtime.pdf
+2025-08-12 09:46:20,690 - INFO - Trying to download from fulltext_url: nan
+2025-08-12 09:46:20,890 - INFO - Processing paper 17:
+2025-08-12 09:46:20,890 - INFO -   Title: Edge computing for real-time call center decision support
+2025-08-12 09:46:20,890 - INFO -   Authors: V Singh, A Agarwal
+2025-08-12 09:46:20,890 - INFO -   Year: 2024
+2025-08-12 09:46:20,891 - INFO - Generated filename for paper 17: 17_Singh_2024_Edge_computing_for_realtime.pdf
+2025-08-12 09:46:21,091 - INFO - Processing paper 18:
+2025-08-12 09:46:21,091 - INFO -   Title: Intelligent call routing: optimizing contact center throughput
+2025-08-12 09:46:21,092 - INFO -   Authors: AR Ali
+2025-08-12 09:46:21,092 - INFO -   Year: 2011
+2025-08-12 09:46:21,092 - INFO - Generated filename for paper 18: 18_Ali_2011_Intelligent_call_routing_optimizing.pdf
+2025-08-12 09:46:21,092 - INFO - Trying to download from fulltext_url: https://dl.acm.org/doi/pdf/10.1145/2237827.2237832
+2025-08-12 09:46:21,139 - INFO - Response from fulltext_url: 403, Content-Type: text/html; charset=UTF-8
+2025-08-12 09:46:21,139 - INFO - Trying to download from article_url: https://dl.acm.org/doi/abs/10.1145/2237827.2237832
+2025-08-12 09:46:21,179 - INFO - Response from article_url: 403, Content-Type: text/html; charset=UTF-8
+2025-08-12 09:46:21,179 - INFO - Trying to download from doi_direct: https://doi.org/10.1145/2237827.2237832
+2025-08-12 09:46:21,324 - INFO - Response from doi_direct: 403, Content-Type: text/html; charset=UTF-8
+2025-08-12 09:46:21,524 - INFO - Processing paper 19:
+2025-08-12 09:46:21,525 - INFO -   Title: Adaptive call center workforce management with deep neural network and reinforcement learning
+2025-08-12 09:46:21,525 - INFO -   Authors: W Kumwilaisak, S Phikulngoen, J Piriyataravet, N Wattanapongsakorn
+2025-08-12 09:46:21,525 - INFO -   Year: 2022
+2025-08-12 09:46:21,525 - INFO - Generated filename for paper 19: 19_Kumwilaisak_2022_Adaptive_call_center_workforce.pdf
+2025-08-12 09:46:21,525 - INFO - Trying to download from fulltext_url: https://ieeexplore.ieee.org/iel7/6287639/6514899/09737504.pdf
+2025-08-12 09:46:22,157 - INFO - Response from fulltext_url: 200, Content-Type: text/html;charset=UTF-8
+2025-08-12 09:46:22,157 - INFO - Trying to download from article_url: https://ieeexplore.ieee.org/abstract/document/9737504/
+2025-08-12 09:46:22,819 - INFO - Response from article_url: 200, Content-Type: text/html;charset=UTF-8
+2025-08-12 09:46:22,819 - INFO - Trying to download from ieee_stamp: https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9737504
+2025-08-12 09:46:22,982 - INFO - Response from ieee_stamp: 200, Content-Type: text/html;charset=UTF-8
+2025-08-12 09:46:22,982 - INFO - Trying to download from ieee_pdf: https://ieeexplore.ieee.org/stampPDF/getPDF.jsp?tp=&arnumber=9737504
+2025-08-12 09:46:25,636 - INFO - Response from ieee_pdf: 200, Content-Type: application/pdf
+2025-08-12 09:46:25,638 - INFO - Successfully downloaded PDF from ieee_pdf to data/literature_reviews/demo_contact_center_ai/pdfs/automatic/19_Kumwilaisak_2022_Adaptive_call_center_workforce.pdf
+2025-08-12 09:46:25,839 - INFO - Processing paper 20:
+2025-08-12 09:46:25,839 - INFO -   Title: Call me maybe: Methods and practical implementation of artificial intelligence in call center arrivals' forecasting
+2025-08-12 09:46:25,839 - INFO -   Authors: T Albrecht, TM Rausch, ND Derra
+2025-08-12 09:46:25,840 - INFO -   Year: 2021
+2025-08-12 09:46:25,840 - INFO - Generated filename for paper 20: 20_Albrecht_2021_Call_maybe_Methods.pdf
+2025-08-12 09:46:25,840 - INFO - Trying to download from fulltext_url: nan
+2025-08-12 09:46:26,040 - INFO - Processing paper 21:
+2025-08-12 09:46:26,040 - INFO -   Title: Predicting call center performance with machine learning
+2025-08-12 09:46:26,041 - INFO -   Authors: S Li, Q Wang, G Koole
+2025-08-12 09:46:26,041 - INFO -   Year: 2018
+2025-08-12 09:46:26,041 - INFO - Generated filename for paper 21: 21_Li_2018_Predicting_call_center_performance.pdf
+2025-08-12 09:46:26,041 - INFO - Trying to download from fulltext_url: https://www.researchgate.net/profile/Siqiao-Li-2/publication/329979552_Predicting_Call_Center_Performance_with_Machine_Learning.pdf
+2025-08-12 09:46:26,084 - INFO - Response from fulltext_url: 403, Content-Type: text/html; charset=UTF-8
+2025-08-12 09:46:26,084 - INFO - Trying to download from article_url: https://link.springer.com/chapter/10.1007/978-3-030-04726-9_19
+2025-08-12 09:46:26,371 - INFO - Response from article_url: 200, Content-Type: text/html; charset=utf-8
+2025-08-12 09:46:26,371 - INFO - Trying to download from doi_direct: https://doi.org/10.1007/978-3-030-04726-9_19
+2025-08-12 09:46:26,763 - INFO - Response from doi_direct: 200, Content-Type: text/html; charset=utf-8
+2025-08-12 09:46:26,964 - INFO - Processing paper 22:
+2025-08-12 09:46:26,964 - INFO -   Title: AI-driven resource allocation in contact centers
+2025-08-12 09:46:26,964 - INFO -   Authors: M Johnson, K Williams
+2025-08-12 09:46:26,964 - INFO -   Year: 2020
+2025-08-12 09:46:26,964 - INFO - Generated filename for paper 22: 22_Johnson_2020_AIdriven_resource_allocation.pdf
+2025-08-12 09:46:26,965 - INFO - Trying to download from fulltext_url: nan
+2025-08-12 09:46:27,165 - INFO - Processing paper 23:
+2025-08-12 09:46:27,165 - INFO -   Title: Intelligent scheduling systems for call center optimization
+2025-08-12 09:46:27,165 - INFO -   Authors: H Zhang, L Chen, R Wang
+2025-08-12 09:46:27,165 - INFO -   Year: 2019
+2025-08-12 09:46:27,166 - INFO - Generated filename for paper 23: 23_Zhang_2019_Intelligent_scheduling_systems_for.pdf
+2025-08-12 09:46:27,166 - INFO - Trying to download from fulltext_url: nan
+2025-08-12 09:46:27,366 - INFO - Processing paper 24:
+2025-08-12 09:46:27,366 - INFO -   Title: Machine learning for contact center performance optimization
+2025-08-12 09:46:27,366 - INFO -   Authors: N Patel, S Kumar, A Sharma
+2025-08-12 09:46:27,367 - INFO -   Year: 2021
+2025-08-12 09:46:27,367 - INFO - Generated filename for paper 24: 24_Patel_2021_Machine_learning_for_contact.pdf
+2025-08-12 09:46:27,367 - INFO - Trying to download from fulltext_url: nan
+2025-08-12 09:46:27,567 - INFO - Processing paper 25:
+2025-08-12 09:46:27,568 - INFO -   Title: Artificial intelligence in call center workforce management
+2025-08-12 09:46:27,568 - INFO -   Authors: B Anderson, J Taylor
+2025-08-12 09:46:27,568 - INFO -   Year: 2018
+2025-08-12 09:46:27,568 - INFO - Generated filename for paper 25: 25_Anderson_2018_Artificial_intelligence_call.pdf
+2025-08-12 09:46:27,568 - INFO - Trying to download from fulltext_url: nan
+2025-08-12 09:46:27,769 - INFO - Processing paper 26:
+2025-08-12 09:46:27,769 - INFO -   Title: Deep learning approaches for call center demand forecasting
+2025-08-12 09:46:27,769 - INFO -   Authors: C Martinez, D Rodriguez
+2025-08-12 09:46:27,769 - INFO -   Year: 2022
+2025-08-12 09:46:27,769 - INFO - Generated filename for paper 26: 26_Martinez_2022_Deep_learning_approaches_for.pdf
+2025-08-12 09:46:27,769 - INFO - Trying to download from fulltext_url: nan
+2025-08-12 09:46:27,970 - INFO - Processing paper 27:
+2025-08-12 09:46:27,970 - INFO -   Title: AI-powered customer routing in contact centers
+2025-08-12 09:46:27,970 - INFO -   Authors: F Wilson, G Thompson
+2025-08-12 09:46:27,970 - INFO -   Year: 2020
+2025-08-12 09:46:27,970 - INFO - Generated filename for paper 27: 27_Wilson_2020_AIpowered_customer_routing.pdf
+2025-08-12 09:46:27,971 - INFO - Trying to download from fulltext_url: nan
+2025-08-12 09:46:28,171 - INFO - Processing paper 28:
+2025-08-12 09:46:28,171 - INFO -   Title: Real-time call routing optimization using deep reinforcement learning
+2025-08-12 09:46:28,171 - INFO -   Authors: Y Liu, X Wang, Z Chen
+2025-08-12 09:46:28,172 - INFO -   Year: 2022
+2025-08-12 09:46:28,172 - INFO - Generated filename for paper 28: 28_Liu_2022_Realtime_call_routing_optimization.pdf
+2025-08-12 09:46:28,172 - INFO - Trying to download from fulltext_url: nan
+2025-08-12 09:46:28,372 - INFO - Processing paper 29:
+2025-08-12 09:46:28,373 - INFO -   Title: Optimization algorithms for AI-based call center management
+2025-08-12 09:46:28,373 - INFO -   Authors: I Garcia, M Lopez
+2025-08-12 09:46:28,373 - INFO -   Year: 2019
+2025-08-12 09:46:28,373 - INFO - Generated filename for paper 29: 29_Garcia_2019_Optimization_algorithms_for_AIbased.pdf
+2025-08-12 09:46:28,373 - INFO - Trying to download from fulltext_url: nan
+2025-08-12 09:46:28,574 - INFO - Processing paper 30:
+2025-08-12 09:46:28,574 - INFO -   Title: Machine learning for real-time call center optimization
+2025-08-12 09:46:28,574 - INFO -   Authors: J Zhang, L Wang, H Chen
+2025-08-12 09:46:28,574 - INFO -   Year: 2021
+2025-08-12 09:46:28,574 - INFO - Generated filename for paper 30: 30_Zhang_2021_Machine_learning_for_realtime.pdf
+2025-08-12 09:46:28,575 - INFO - Trying to download from fulltext_url: nan
+2025-08-12 09:46:28,775 - INFO - Processing paper 31:
+2025-08-12 09:46:28,775 - INFO -   Title: Intelligent agent assignment using machine learning in contact centers
+2025-08-12 09:46:28,775 - INFO -   Authors: Q Kim, R Lee
+2025-08-12 09:46:28,775 - INFO -   Year: 2023
+2025-08-12 09:46:28,775 - INFO - Generated filename for paper 31: 31_Kim_2023_Intelligent_agent_assignment_using.pdf
+2025-08-12 09:46:28,976 - INFO - Processing paper 32:
+2025-08-12 09:46:28,976 - INFO -   Title: Predictive analytics for real-time contact center decision making
+2025-08-12 09:46:28,976 - INFO -   Authors: D Smith, K Johnson
+2025-08-12 09:46:28,976 - INFO -   Year: 2020
+2025-08-12 09:46:28,977 - INFO - Generated filename for paper 32: 32_Smith_2020_Predictive_analytics_for_realtime.pdf
+2025-08-12 09:46:28,977 - INFO - Trying to download from fulltext_url: nan
+2025-08-12 09:46:29,177 - INFO - Processing paper 33:
+2025-08-12 09:46:29,177 - INFO -   Title: AI-based workload balancing in call centers
+2025-08-12 09:46:29,177 - INFO -   Authors: E Nakamura, S Tanaka
+2025-08-12 09:46:29,177 - INFO -   Year: 2021
+2025-08-12 09:46:29,178 - INFO - Generated filename for paper 33: 33_Nakamura_2021_AIbased_workload_balancing.pdf
+2025-08-12 09:46:29,178 - INFO - Trying to download from fulltext_url: nan
+2025-08-12 09:46:29,378 - INFO - Processing paper 34:
+2025-08-12 09:46:29,379 - INFO -   Title: Low-latency decision systems for call center management
+2025-08-12 09:46:29,379 - INFO -   Authors: P Lee, S Kim, J Park
+2025-08-12 09:46:29,379 - INFO -   Year: 2020
+2025-08-12 09:46:29,379 - INFO - Generated filename for paper 34: 34_Lee_2020_Lowlatency_decision_systems_for.pdf
+2025-08-12 09:47:01,355 - INFO - === PDF Downloader Logger Initialized ===
+2025-08-12 09:47:01,356 - INFO - Log file path: data/literature_reviews/demo_contact_center_ai/pdfs/automatic/reports/download_log.txt
+2025-08-12 09:47:01,356 - INFO - Reports directory exists: True
+2025-08-12 09:47:01,356 - INFO - Reports directory writable: True
+2025-08-12 09:47:01,356 - INFO - PDFDownloader initialization completed successfully.
+2025-08-12 10:04:08,563 - INFO - === PDF Downloader Logger Initialized ===
+2025-08-12 10:04:08,563 - INFO - Log file path: data/literature_reviews/demo_contact_center_ai/pdfs/automatic/reports/download_log.txt
+2025-08-12 10:04:08,563 - INFO - Reports directory exists: True
+2025-08-12 10:04:08,563 - INFO - Reports directory writable: True
+2025-08-12 10:04:08,563 - INFO - PDFDownloader initialization completed successfully.
+2025-08-12 10:05:21,304 - INFO - === PDF Downloader Logger Initialized ===
+2025-08-12 10:05:21,304 - INFO - Log file path: data/literature_reviews/demo_contact_center_ai/pdfs/automatic/reports/download_log.txt
+2025-08-12 10:05:21,304 - INFO - Reports directory exists: True
+2025-08-12 10:05:21,304 - INFO - Reports directory writable: True
+2025-08-12 10:05:21,304 - INFO - PDFDownloader initialization completed successfully.
+2025-08-12 10:05:28,148 - INFO - === PDF Downloader Logger Initialized ===
+2025-08-12 10:05:28,148 - INFO - Log file path: data/literature_reviews/demo_contact_center_ai/pdfs/automatic/reports/download_log.txt
+2025-08-12 10:05:28,148 - INFO - Reports directory exists: True
+2025-08-12 10:05:28,148 - INFO - Reports directory writable: True
+2025-08-12 10:05:28,148 - INFO - PDFDownloader initialization completed successfully.
+2025-08-12 10:06:02,460 - INFO - === PDF Downloader Logger Initialized ===
+2025-08-12 10:06:02,460 - INFO - Log file path: data/literature_reviews/demo_contact_center_ai/pdfs/automatic/reports/download_log.txt
+2025-08-12 10:06:02,460 - INFO - Reports directory exists: True
+2025-08-12 10:06:02,460 - INFO - Reports directory writable: True
+2025-08-12 10:06:02,460 - INFO - PDFDownloader initialization completed successfully.
+2025-08-12 11:00:47,004 - INFO - === PDF Downloader Logger Initialized ===
+2025-08-12 11:00:47,004 - INFO - Log file path: data/literature_reviews/demo_contact_center_ai/pdfs/automatic/reports/download_log.txt
+2025-08-12 11:00:47,004 - INFO - Reports directory exists: True
+2025-08-12 11:00:47,004 - INFO - Reports directory writable: True
+2025-08-12 11:00:47,005 - INFO - PDFDownloader initialization completed successfully.
+2025-08-12 14:06:32,160 - INFO - === PDF Downloader Logger Initialized ===
+2025-08-12 14:06:32,160 - INFO - Log file path: data/literature_reviews/demo_contact_center_ai/pdfs/automatic/reports/download_log.txt
+2025-08-12 14:06:32,160 - INFO - Reports directory exists: True
+2025-08-12 14:06:32,160 - INFO - Reports directory writable: True
+2025-08-12 14:06:32,160 - INFO - PDFDownloader initialization completed successfully.

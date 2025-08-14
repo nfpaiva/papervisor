@@ -1,0 +1,72 @@
+{
+  "0": {
+    "status": "success",
+    "json_file": "0_li_2018_predicting_call_center.json",
+    "sections": ["abstract", "introduction", "methods", "results", "discussion", "conclusion", "references"],
+    "screening_action": "",
+    "extraction_metadata": {
+      "text_length": 15420,
+      "word_count": 2847,
+      "total_pages": 8,
+      "raw_text_chars": 18350,
+      "section_text_chars": 15420,
+      "section_extraction_percentage": 84.0
+    }
+  },
+  "1": {
+    "status": "success",
+    "json_file": "1_ali_2011_intelligent_call_routing.json",
+    "sections": ["abstract", "introduction", "methods", "results", "discussion", "conclusion", "references"],
+    "screening_action": "",
+    "extraction_metadata": {
+      "text_length": 12890,
+      "word_count": 2156,
+      "total_pages": 6,
+      "raw_text_chars": 14230,
+      "section_text_chars": 12890,
+      "section_extraction_percentage": 90.6
+    }
+  },
+  "2": {
+    "status": "success",
+    "json_file": "2_kumwilaisak_2022_adaptive_call_center.json",
+    "sections": ["abstract", "introduction", "methods", "results", "discussion", "conclusion", "references"],
+    "screening_action": "",
+    "extraction_metadata": {
+      "text_length": 18750,
+      "word_count": 3421,
+      "total_pages": 12,
+      "raw_text_chars": 21200,
+      "section_text_chars": 18750,
+      "section_extraction_percentage": 88.4
+    }
+  },
+  "3": {
+    "status": "success",
+    "json_file": "3_ilk_2020_improving_customer_routing.json",
+    "sections": ["abstract", "introduction", "methods", "results", "discussion", "conclusion", "references"],
+    "screening_action": "",
+    "extraction_metadata": {
+      "text_length": 22340,
+      "word_count": 4156,
+      "total_pages": 18,
+      "raw_text_chars": 25890,
+      "section_text_chars": 22340,
+      "section_extraction_percentage": 86.3
+    }
+  },
+  "4": {
+    "status": "partial",
+    "json_file": "4_rahman_2019_realtime_decision_support.json",
+    "sections": ["abstract", "introduction", "methods", "results"],
+    "screening_action": "",
+    "extraction_metadata": {
+      "text_length": 9840,
+      "word_count": 1892,
+      "total_pages": 6,
+      "raw_text_chars": 12450,
+      "section_text_chars": 9840,
+      "section_extraction_percentage": 79.0
+    }
+  }
+}

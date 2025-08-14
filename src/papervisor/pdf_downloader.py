@@ -168,9 +168,23 @@ class PDFDownloader:
         session.mount("http://", adapter)
         session.mount("https://", adapter)
 
-        # Set user agent
+        # Set user agent and browser-like headers
         session.headers.update(
-            {"User-Agent": "Papervisor/1.0 (Literature Review Tool)"}
+            {
+                "User-Agent": (
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                    "(KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+                ),
+                "Accept": (
+                    "text/html,application/xhtml+xml,application/xml;q=0.9,"
+                    "image/avif,image/webp,*/*;q=0.8"
+                ),
+                "Accept-Language": "en-US,en;q=0.5",
+                "Accept-Encoding": "gzip, deflate",
+                "DNT": "1",
+                "Connection": "keep-alive",
+                "Upgrade-Insecure-Requests": "1",
+            }
         )
 
         return session
@@ -631,7 +645,25 @@ class PDFDownloader:
         for source, download_url in download_urls:
             self.logger.info(f"Trying to download from {source}: {download_url}")
             try:
-                response = self.session.get(download_url, timeout=30)
+                # Special handling for IEEE URLs
+                headers = {}
+                if "ieeexplore.ieee.org" in download_url:
+                    headers.update(
+                        {
+                            "Referer": "https://ieeexplore.ieee.org/",
+                            "Accept": (
+                                "application/pdf,text/html,application/xhtml+xml,"
+                                "application/xml;q=0.9,*/*;q=0.8"
+                            ),
+                            "Accept-Language": "en-US,en;q=0.5",
+                            "Accept-Encoding": "gzip, deflate",
+                            "DNT": "1",
+                            "Connection": "keep-alive",
+                            "Upgrade-Insecure-Requests": "1",
+                        }
+                    )
+
+                response = self.session.get(download_url, timeout=30, headers=headers)
                 self.logger.info(
                     f"Response from {source}: {response.status_code}, "
                     f"Content-Type: {response.headers.get('content-type', 'Unknown')}"
@@ -681,11 +713,40 @@ class PDFDownloader:
                 continue
 
         # If we get here, all download attempts failed
+
+        # Create a more helpful error message based on the URLs we tried
+        all_text = f"{doi} {url} {article_url} {fulltext_url}".lower()
+        error_details = "Could not download automatically from available sources"
+
+        if "ieeexplore.ieee.org" in all_text:
+            error_details = (
+                "IEEE papers often require institutional access. "
+                "Try downloading manually from your institution's library "
+                "or use the IEEE Xplore direct download if you have access."
+            )
+        elif "springer" in all_text or "link.springer.com" in all_text:
+            error_details = (
+                "Springer papers may require subscription access. "
+                "Try downloading manually through your institution."
+            )
+        elif "acm.org" in all_text:
+            error_details = (
+                "ACM papers may require ACM Digital Library access. "
+                "Try downloading manually through your institution."
+            )
+        elif not any([doi, url, article_url, fulltext_url]):
+            error_details = "No download URLs available for this paper."
+        elif "pdf" not in all_text:
+            error_details = (
+                "No direct PDF URLs found. The available URLs may lead to "
+                "publisher pages that require manual download."
+            )
+
         return PaperDownloadResult(
             paper_id=paper_id,
             title=title,
             status=DownloadStatus.MANUAL_REQUIRED,
-            error_message="Could not download automatically from available sources",
+            error_message=error_details,
         )
 
     def _get_download_urls(
@@ -712,9 +773,14 @@ class PDFDownloader:
         if article_url:
             urls.append(("article_url", article_url))
 
-        # Try Sci-Hub (use with caution and check local laws)
-        # if doi:
-        #     urls.append(("sci-hub", f"https://sci-hub.se/{doi}"))
+        # Special handling for IEEE URLs
+        all_text = f"{url} {doi} {article_url} {fulltext_url}".lower()
+        if "ieeexplore.ieee.org" in all_text:
+            # Try to convert IEEE viewer URLs to direct PDF URLs
+            ieee_urls = self._get_ieee_pdf_urls(url, article_url, fulltext_url)
+            for ieee_label, ieee_url in ieee_urls:
+                if ieee_url:
+                    urls.append((ieee_label, ieee_url))
 
         # Try DOI URL directly
         if doi:
@@ -725,7 +791,6 @@ class PDFDownloader:
             urls.append(("original_url", url))
 
         # Try arXiv if it looks like an arXiv paper
-        all_text = f"{url} {doi} {article_url} {fulltext_url}".lower()
         if "arxiv" in all_text:
             # Extract arXiv ID and construct PDF URL
             arxiv_id = self._extract_arxiv_id(url, doi)
@@ -733,6 +798,100 @@ class PDFDownloader:
                 urls.append(("arxiv", f"https://arxiv.org/pdf/{arxiv_id}.pdf"))
 
         return urls
+
+    def _convert_ieee_to_pdf_url(
+        self, url: str, article_url: str, fulltext_url: str
+    ) -> Optional[str]:
+        """Convert IEEE URLs to potential PDF download URLs."""
+        # Try different IEEE URL patterns
+        for source_url in [fulltext_url, article_url, url]:
+            if not source_url or "ieeexplore.ieee.org" not in source_url:
+                continue
+
+            # Extract article number from various IEEE URL formats
+            # Format 1: https://ieeexplore.ieee.org/document/9381200
+            # Format 2: https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9381200
+
+            # Try to extract arnumber parameter
+            arnumber_match = re.search(r"arnumber=(\d+)", source_url)
+            if arnumber_match:
+                arnumber = arnumber_match.group(1)
+                # Return the original stamp URL since it might work with proper headers
+                return (
+                    f"https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&"
+                    f"arnumber={arnumber}"
+                )
+
+            # Try to extract document ID
+            doc_match = re.search(r"/document/(\d+)", source_url)
+            if doc_match:
+                doc_id = doc_match.group(1)
+                # Try both stamp URL and getPDF URL
+                return (
+                    f"https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber={doc_id}"
+                )
+
+        return None
+
+    def _get_ieee_pdf_urls(
+        self, url: str, article_url: str, fulltext_url: str
+    ) -> List[Tuple[str, str]]:
+        """Get multiple IEEE PDF URL attempts."""
+        ieee_urls = []
+
+        for source_url in [fulltext_url, article_url, url]:
+            if not source_url or "ieeexplore.ieee.org" not in source_url:
+                continue
+
+            # Extract article number from various IEEE URL formats
+            arnumber_match = re.search(r"arnumber=(\d+)", source_url)
+            doc_match = re.search(r"/document/(\d+)", source_url)
+
+            if arnumber_match:
+                arnumber = arnumber_match.group(1)
+                # Try multiple IEEE URL formats
+                ieee_urls.append(
+                    (
+                        "ieee_stamp",
+                        (
+                            f"https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&"
+                            f"arnumber={arnumber}"
+                        ),
+                    )
+                )
+                ieee_urls.append(
+                    (
+                        "ieee_pdf",
+                        (
+                            f"https://ieeexplore.ieee.org/stampPDF/getPDF.jsp?tp=&"
+                            f"arnumber={arnumber}"
+                        ),
+                    )
+                )
+                break
+            elif doc_match:
+                doc_id = doc_match.group(1)
+                ieee_urls.append(
+                    (
+                        "ieee_stamp",
+                        (
+                            f"https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&"
+                            f"arnumber={doc_id}"
+                        ),
+                    )
+                )
+                ieee_urls.append(
+                    (
+                        "ieee_pdf",
+                        (
+                            f"https://ieeexplore.ieee.org/stampPDF/getPDF.jsp?tp=&"
+                            f"arnumber={doc_id}"
+                        ),
+                    )
+                )
+                break
+
+        return ieee_urls
 
     def _extract_arxiv_id(self, url: str, doi: str) -> Optional[str]:
         """Extract arXiv ID from URL or DOI."""

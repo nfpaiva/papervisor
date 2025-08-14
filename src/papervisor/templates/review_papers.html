@@ -10,7 +10,7 @@
                 <h1>🔍 Review & Clean Duplicates</h1>
                 <div>
                     <span class="badge badge-secondary">Step 1 of 2</span>
-                    <a href="{{ url_for('download_management') }}" class="btn btn-outline-primary btn-sm">
+                    <a href="{{ url_for('download_management', project_id=project_id) }}" class="btn btn-outline-primary btn-sm">
                         <i class="fas fa-download"></i> Go to Downloads
                     </a>
                 </div>
@@ -58,7 +58,7 @@
             {% endwith %}
 
             <!-- Duplicate Marking Form -->
-            <form method="POST" action="{{ url_for('mark_duplicates') }}">
+            <form method="POST" action="{{ url_for('mark_duplicates', project_id=project_id) }}">
                 <!-- Paper Groups -->
                 {% for group in paper_groups %}
                 <div class="card mb-3 {% if group.is_potential_duplicate_group %}border-danger{% endif %}">
