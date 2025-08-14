@@ -16,10 +16,18 @@ repos:
       - id: black
         language_version: python3.12
 
-  - repo: https://github.com/pycqa/flake8
-    rev: 7.0.0
+  - repo: https://github.com/doublify/pre-commit-rust
+    rev: v1.0
     hooks:
-      - id: flake8
+      - id: clippy
+        name: Rust clippy (flake8 replacement)
+        args: [--all-targets, --all-features, --, -D, warnings]
+        # Only run Rust clippy for Python files as a flake8 replacement
+        files: \.py$
+      - id: cargo-check
+        name: Rust check
+        files: \.rs$
+    # Only run Rust hooks if Rust or Python files are present
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.8.0
@@ -27,16 +35,3 @@ repos:
       - id: mypy
         additional_dependencies: [types-requests, types-urllib3]
         args: [--ignore-missing-imports, --no-strict-optional, --no-warn-unreachable]
-
-  - repo: https://github.com/doublify/pre-commit-rust
-    rev: v1.0
-    hooks:
-      - id: fmt
-        name: Rust fmt
-      - id: cargo-check
-        name: Rust check
-      - id: clippy
-        name: Rust clippy
-        args: [--all-targets, --all-features, --, -D, warnings]
-    # Only run Rust hooks if Rust files are present
-    files: \.rs$
