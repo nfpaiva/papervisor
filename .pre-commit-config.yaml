@@ -1,12 +1,12 @@
 repos:
   - repo: local
     hooks:
-      # - id: pytest
-      #   name: pytest (unit/integration/web tests)
-      #   entry: pytest
-      #   language: python
-      #   types: [python]
-      #   args: [tests/]
+      - id: pytest
+        name: pytest (unit/integration/web tests)
+        entry: pytest
+        language: python
+        types: [python]
+        args: [tests/]
       - id: xenon
         name: xenon complexity gate (excludes legacy files)
         entry: xenon --max-absolute C --max-modules B --max-average A --exclude src/papervisor/pdf_downloader.py,src/papervisor/cli.py,src/papervisor/web_server.py src/papervisor
