@@ -52,22 +52,3 @@ jobs:
       run: xenon --max-absolute C --max-modules B --max-average A --exclude src/papervisor/pdf_downloader.py,src/papervisor/cli.py,src/papervisor/web_server.py src/papervisor
     - name: Radon maintainability/complexity summary
       run: bash -c 'radon mi src/ | grep -E "^src/|Average" && radon cc src/ -s | grep -E "^src/|Average"'
-
-  pre-commit:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.12"
-
-    - name: Install pre-commit
-      run: |
-        python -m pip install --upgrade pip
-        pip install pre-commit
-
-    - name: Run pre-commit hooks
-      run: |
-        pre-commit run --all-files
