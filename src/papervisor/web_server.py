@@ -2,6 +2,9 @@
 
 import json
 import re
+import threading
+import time
+from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Tuple, Union
 
@@ -21,31 +24,59 @@ from werkzeug.wrappers import Response as WerkzeugResponse
 
 from .core import Papervisor
 from .pdf_downloader import PDFDownloader, DownloadStatus, PaperDownloadResult
+import openai
+
+
+@dataclass
+class DownloadProgress:
+    """Track download progress for a project."""
+
+    project_id: str
+    total_papers: int = 0
+    completed: int = 0
+    failed: int = 0
+    success: int = 0
+    current_paper: str = ""
+    is_running: bool = False
+    error_message: str = ""
+    start_time: float = 0.0
 
 
 class PapervisorWebServer:
     """Web server for managing PDF downloads and viewing status."""
 
-    def __init__(self, project_id: str, data_dir: str = "data"):
+    # Class variable to track download progress across instances
+    _download_progress: Dict[str, DownloadProgress] = {}
+    _download_locks: Dict[str, threading.Lock] = {}
+
+    def __init__(self, project_id: Optional[str] = None, data_dir: str = "data"):
         """Initialize the web server.
 
         Args:
-            project_id: Literature review project ID
+            project_id: Literature review project ID (None for multi-project mode)
             data_dir: Data directory path
         """
         self.project_id = project_id
         self.data_dir = Path(data_dir)
 
-        # Initialize Papervisor and get the project
+        # Initialize Papervisor
         self.papervisor = Papervisor(data_dir)
-        self.project = self.papervisor.get_project(project_id)
-        if not self.project:
-            raise ValueError(f"Project '{project_id}' not found")
+
+        # If project_id is provided, validate it exists
+        self.project = None
+        if project_id:
+            self.project = self.papervisor.get_project(project_id)
+            if not self.project:
+                raise ValueError(f"Project '{project_id}' not found")
 
         # Initialize Flask app
         template_dir = Path(__file__).parent / "templates"
         self.app = Flask(__name__, template_folder=str(template_dir))
         self.app.secret_key = "papervisor_secret_key_change_in_production"
+
+        # Initialize progress tracking for downloads
+        self.progress: Dict[str, DownloadProgress] = {}
+        self._download_locks: Dict[str, threading.Lock] = {}
 
         # Setup routes
         self._setup_routes()
@@ -62,17 +93,187 @@ class PapervisorWebServer:
 
         @self.app.route("/")
         def index() -> WerkzeugResponse:
-            """Main landing page - redirect to review page."""
-            return redirect(url_for("review_papers"))
+            """Main landing page - show projects list or redirect to single project."""
+            if self.project_id:
+                # Single project mode - redirect to review page
+                return redirect(url_for("review_papers"))
+            else:
+                # Multi-project mode - show landing page
+                return redirect(url_for("landing_page"))
 
+        @self.app.route("/projects")
+        def landing_page() -> Union[str, WerkzeugResponse]:
+            """Landing page showing all literature review projects."""
+            try:
+                # Get all projects
+                projects = self.papervisor.list_projects()
+
+                # Prepare project data with statistics
+                project_queries: Dict[str, List[Any]] = {}
+                project_stats: Dict[str, Dict[str, Any]] = {}
+                query_stats: Dict[str, Dict[str, Any]] = {}
+
+                for project in projects:
+                    try:
+                        # Get queries for this project
+                        queries = self.papervisor.list_project_queries(
+                            project.project_id
+                        )
+                        project_queries[project.project_id] = queries
+                    except Exception as e:
+                        print(
+                            f"Error loading queries for project "
+                            f"{project.project_id}: {e}"
+                        )
+                        project_queries[project.project_id] = []
+                        # Continue with empty queries list
+
+                    # Calculate statistics
+                    total_papers = 0
+                    downloaded_papers = 0
+                    has_consolidated = False
+                    consolidated_date = None
+
+                    # Check if consolidated file exists
+                    project_path = self.data_dir / project.project_path
+                    consolidated_path = (
+                        project_path / "pdfs" / "consolidated_papers.csv"
+                    )
+
+                    if consolidated_path.exists():
+                        has_consolidated = True
+                        consolidated_date_timestamp = consolidated_path.stat().st_mtime
+                        import datetime
+
+                        consolidated_date = datetime.datetime.fromtimestamp(
+                            consolidated_date_timestamp
+                        ).strftime("%Y-%m-%d")
+
+                        # Count papers from consolidated file
+                        try:
+                            consolidated_df = pd.read_csv(consolidated_path)
+                            total_papers = len(consolidated_df)
+
+                            # Count downloaded papers
+                            pdf_automatic_dir = project_path / "pdfs" / "automatic"
+                            pdf_manual_dir = project_path / "pdfs" / "manual"
+
+                            downloaded_files = []
+                            if pdf_automatic_dir.exists():
+                                downloaded_files.extend(
+                                    list(pdf_automatic_dir.glob("*.pdf"))
+                                )
+                            if pdf_manual_dir.exists():
+                                downloaded_files.extend(
+                                    list(pdf_manual_dir.glob("*.pdf"))
+                                )
+
+                            downloaded_papers = len(downloaded_files)
+                        except Exception:
+                            total_papers = 0
+                            downloaded_papers = 0
+
+                    project_stats[project.project_id] = {
+                        "total_papers": total_papers,
+                        "downloaded_papers": downloaded_papers,
+                        "has_consolidated": has_consolidated,
+                        "consolidated_date": consolidated_date,
+                    }
+
+                    # Get query statistics
+                    query_stats[project.project_id] = {}
+                    queries = project_queries.get(project.project_id, [])
+                    for query in queries:
+                        try:
+                            pm = self.papervisor.project_manager
+                            results_dir = pm.get_project_results_directory(
+                                project.project_id
+                            )
+                            query_file = results_dir / Path(query.results_file).name
+                            if query_file.exists():
+                                query_df = pd.read_csv(query_file)
+                                query_stats[project.project_id][query.id] = {
+                                    "paper_count": len(query_df)
+                                }
+                            else:
+                                query_stats[project.project_id][query.id] = None
+                        except Exception as e:
+                            print(f"Error loading query stats for {query.id}: {e}")
+                            query_stats[project.project_id][query.id] = None
+
+                return render_template(
+                    "landing.html",
+                    projects=projects,
+                    project_queries=project_queries,
+                    project_stats=project_stats,
+                    query_stats=query_stats,
+                )
+
+            except Exception as e:
+                return render_template("error.html", error=str(e))
+
+        @self.app.route("/consolidate", methods=["POST"])
+        def consolidate_project() -> WerkzeugResponse:
+            """Consolidate queries for a project."""
+            try:
+                project_id = request.form.get("project_id")
+                if not project_id:
+                    flash("Project ID is required", "error")
+                    return redirect(url_for("landing_page"))
+
+                # Consolidate the project
+                self.papervisor.consolidate_project_csvs(project_id)
+                flash(f"Project '{project_id}' consolidated successfully!", "success")
+
+                return redirect(url_for("landing_page"))
+
+            except Exception as e:
+                flash(f"Error consolidating project: {str(e)}", "error")
+                return redirect(url_for("landing_page"))
+
+        @self.app.route("/project/<project_id>")
+        def project_dashboard(project_id: str) -> WerkzeugResponse:
+            """Redirect to review papers page for a specific project."""
+            return redirect(url_for("review_papers", project_id=project_id))
+
+        # Legacy single-project routes (for backward compatibility)
         @self.app.route("/review")
-        def review_papers() -> Union[str, WerkzeugResponse]:
+        def review_papers_legacy() -> WerkzeugResponse:
+            """Legacy route for review papers - redirect to project-specific route."""
+            if not self.project_id:
+                return redirect(url_for("landing_page"))
+            return redirect(url_for("review_papers", project_id=self.project_id))
+
+        @self.app.route("/downloads")
+        def download_management_legacy() -> WerkzeugResponse:
+            """Legacy route - redirect to project-specific download management."""
+            if not self.project_id:
+                return redirect(url_for("landing_page"))
+            return redirect(url_for("download_management", project_id=self.project_id))
+
+        @self.app.route("/project/<project_id>/review")
+        def review_papers(
+            project_id: Optional[str] = None,
+        ) -> Union[str, WerkzeugResponse]:
             """Page 1: Review and clean consolidated papers."""
             try:
+                # Use provided project_id or fallback to instance project_id
+                current_project_id = project_id or self.project_id
+                if not current_project_id:
+                    return render_template("error.html", error="No project specified")
+
+                # Get the project
+                current_project = self.papervisor.get_project(current_project_id)
+                if not current_project:
+                    return render_template(
+                        "error.html", error=f"Project '{current_project_id}' not found"
+                    )
+
+                # Get project path
+                project_path = self.data_dir / current_project.project_path
+
                 # Load consolidated papers data
-                consolidated_path = (
-                    self.project_path / "pdfs" / "consolidated_papers.csv"
-                )
+                consolidated_path = project_path / "pdfs" / "consolidated_papers.csv"
                 if not consolidated_path.exists():
                     return render_template(
                         "error.html",
@@ -131,7 +332,7 @@ class PapervisorWebServer:
 
                 return render_template(
                     "review_papers.html",
-                    project_id=self.project_id,
+                    project_id=current_project_id,
                     paper_groups=grouped_papers,
                     total_papers=len(papers_data),
                 )
@@ -140,13 +341,29 @@ class PapervisorWebServer:
                 return render_template("error.html", error=str(e))
 
         @self.app.route("/downloads")
-        def download_management() -> Union[str, WerkzeugResponse]:
+        @self.app.route("/project/<project_id>/downloads")
+        def download_management(
+            project_id: Optional[str] = None,
+        ) -> Union[str, WerkzeugResponse]:
             """Page 2: Download management and status."""
             try:
+                # Use provided project_id or fallback to instance project_id
+                current_project_id = project_id or self.project_id
+                if not current_project_id:
+                    return render_template("error.html", error="No project specified")
+
+                # Get the project
+                current_project = self.papervisor.get_project(current_project_id)
+                if not current_project:
+                    return render_template(
+                        "error.html", error=f"Project '{current_project_id}' not found"
+                    )
+
+                # Get project path
+                project_path = self.data_dir / current_project.project_path
+
                 # Load consolidated papers data
-                consolidated_path = (
-                    self.project_path / "pdfs" / "consolidated_papers.csv"
-                )
+                consolidated_path = project_path / "pdfs" / "consolidated_papers.csv"
                 if not consolidated_path.exists():
                     return render_template(
                         "error.html",
@@ -164,15 +381,34 @@ class PapervisorWebServer:
                     non_duplicate_papers = papers_df[
                         ~papers_df["is_duplicate"].fillna(False)
                     ].copy()
+                    total_papers_before_filter = len(papers_df)
+                    total_duplicates = len(
+                        papers_df[papers_df["is_duplicate"].fillna(False)]
+                    )
+                    print(
+                        f"DEBUG: Total papers before duplicate filter: "
+                        f"{total_papers_before_filter}"
+                    )
+                    print(f"DEBUG: Total duplicates marked: {total_duplicates}")
+                    print(
+                        f"DEBUG: Total papers after duplicate filter: "
+                        f"{len(non_duplicate_papers)}"
+                    )
                 else:
                     non_duplicate_papers = papers_df.copy()
+                    print(
+                        f"DEBUG: No duplicate columns found, using all "
+                        f"{len(papers_df)} papers"
+                    )
 
                 # Load download status from reports
-                downloader = PDFDownloader(self.project_path)
+                downloader = PDFDownloader(project_path)
                 download_stats = downloader.get_download_statistics()
 
                 # Get list of downloaded files with their sources
-                downloaded_files_info = self._get_downloaded_files_with_source()
+                downloaded_files_info = self._get_downloaded_files_with_source(
+                    project_path
+                )
                 downloaded_files = [info["filename"] for info in downloaded_files_info]
 
                 # Create a mapping of duplicate information for traceability
@@ -303,42 +539,70 @@ class PapervisorWebServer:
 
                 return render_template(
                     "dashboard.html",
-                    project_id=self.project_id,
+                    project_id=current_project_id,
                     papers=papers_data,
                     download_stats=download_stats,
                     total_papers=len(papers_data),
                     downloaded_count=sum(1 for p in papers_data if p["is_downloaded"]),
                     manual_count=sum(1 for p in papers_data if not p["is_downloaded"]),
+                    total_papers_in_file=len(papers_df),
+                    total_after_duplicate_filter=len(non_duplicate_papers),
                 )
 
             except Exception as e:
                 return render_template("error.html", error=str(e))
 
         @self.app.route("/submit_url", methods=["POST"])
-        def submit_url() -> WerkzeugResponse:
+        @self.app.route("/project/<project_id>/submit_url", methods=["POST"])
+        def submit_url(project_id: Optional[str] = None) -> WerkzeugResponse:
             """Handle URL submission for manual download."""
             try:
+                # Use provided project_id or fallback to instance project_id
+                current_project_id = project_id or self.project_id
+                if not current_project_id:
+                    flash("No project specified", "error")
+                    return redirect(url_for("landing_page"))
+
+                # Get the project
+                current_project = self.papervisor.get_project(current_project_id)
+                if not current_project:
+                    flash(f"Project '{current_project_id}' not found", "error")
+                    return redirect(url_for("landing_page"))
+
+                # Get project path
+                project_path = self.data_dir / current_project.project_path
+
                 paper_id = request.form.get("paper_id")
                 submitted_url = request.form.get("url")
 
                 if not paper_id or not submitted_url:
                     flash("Paper ID and URL are required.", "error")
-                    return redirect(url_for("download_management"))
+                    if project_id:
+                        return redirect(
+                            url_for("download_management", project_id=project_id)
+                        )
+                    else:
+                        return redirect(url_for("download_management"))
 
                 # Load the paper data
-                consolidated_path = (
-                    self.project_path / "pdfs" / "consolidated_papers.csv"
-                )
+                consolidated_path = project_path / "pdfs" / "consolidated_papers.csv"
                 papers_df = pd.read_csv(consolidated_path)
 
                 if int(float(paper_id)) >= len(papers_df):
                     flash("Invalid paper ID.", "error")
-                    return redirect(url_for("download_management"))
+                    if project_id:
+                        return redirect(
+                            url_for("download_management", project_id=project_id)
+                        )
+                    else:
+                        return redirect(url_for("download_management"))
 
                 paper = papers_df.iloc[int(float(paper_id))]
 
                 # Try to download from the submitted URL
-                result = self._download_from_url(paper, submitted_url, paper_id)
+                result = self._download_from_url(
+                    paper, submitted_url, paper_id, project_path
+                )
 
                 if result.status == DownloadStatus.SUCCESS:
                     flash(
@@ -351,37 +615,85 @@ class PapervisorWebServer:
                         "error",
                     )
 
-                return redirect(url_for("download_management"))
+                if project_id:
+                    return redirect(
+                        url_for("download_management", project_id=project_id)
+                    )
+                else:
+                    return redirect(url_for("download_management"))
 
             except Exception as e:
                 flash(f"Error processing URL submission: {str(e)}", "error")
-                return redirect(url_for("download_management"))
+                if project_id:
+                    return redirect(
+                        url_for("download_management", project_id=project_id)
+                    )
+                else:
+                    return redirect(url_for("download_management"))
 
         @self.app.route("/download_all_missing", methods=["POST"])
-        def download_all_missing() -> WerkzeugResponse:
+        @self.app.route("/project/<project_id>/download_all_missing", methods=["POST"])
+        def download_all_missing(project_id: Optional[str] = None) -> WerkzeugResponse:
             """Attempt to download all missing papers."""
             try:
-                # Run the download process for missing papers
-                # Note: Need to use PDFDownloader directly as project doesn't
-                # have this method
-                # downloader = PDFDownloader(self.project_path)
-                # TODO: Implement mass download functionality
-                flash("Download process completed. Check the results below.", "success")
-                return redirect(url_for("download_management"))
+                # Use provided project_id or fallback to instance project_id
+                current_project_id = project_id or self.project_id
+                if not current_project_id:
+                    flash("No project specified", "error")
+                    return redirect(url_for("landing_page"))
+
+                # Get the project
+                current_project = self.papervisor.get_project(current_project_id)
+                if not current_project:
+                    flash(f"Project '{current_project_id}' not found", "error")
+                    return redirect(url_for("landing_page"))
+
+                # Start download in background thread
+                self._start_download_process(current_project_id, retry_failed=False)
+
+                flash("Download process started. Check progress below.", "info")
+
+                # Redirect to the appropriate download management page
+                if project_id:
+                    return redirect(
+                        url_for("download_management", project_id=project_id)
+                    )
+                else:
+                    return redirect(url_for("download_management"))
 
             except Exception as e:
                 flash(f"Error during download process: {str(e)}", "error")
-                return redirect(url_for("download_management"))
+                if project_id:
+                    return redirect(
+                        url_for("download_management", project_id=project_id)
+                    )
+                else:
+                    return redirect(url_for("download_management"))
 
         @self.app.route("/api/paper/<paper_id>")
+        @self.app.route("/project/<project_id>/api/paper/<paper_id>")
         def api_paper_details(
-            paper_id: str,
+            paper_id: str, project_id: Optional[str] = None
         ) -> Union[FlaskResponse, Tuple[FlaskResponse, int]]:
             """API endpoint to get detailed paper information."""
             try:
-                consolidated_path = (
-                    self.project_path / "pdfs" / "consolidated_papers.csv"
-                )
+                # Use provided project_id or fallback to instance project_id
+                current_project_id = project_id or self.project_id
+                if not current_project_id:
+                    return jsonify({"error": "No project specified"}), 400
+
+                # Get the project
+                current_project = self.papervisor.get_project(current_project_id)
+                if not current_project:
+                    return (
+                        jsonify({"error": f"Project '{current_project_id}' not found"}),
+                        404,
+                    )
+
+                # Get project path
+                project_path = self.data_dir / current_project.project_path
+
+                consolidated_path = project_path / "pdfs" / "consolidated_papers.csv"
                 papers_df = pd.read_csv(consolidated_path)
 
                 if int(float(paper_id)) >= len(papers_df):
@@ -414,9 +726,25 @@ class PapervisorWebServer:
                 return jsonify({"error": str(e)}), 500
 
         @self.app.route("/mark_duplicates", methods=["POST"])
-        def mark_duplicates() -> WerkzeugResponse:
+        @self.app.route("/project/<project_id>/mark_duplicates", methods=["POST"])
+        def mark_duplicates(project_id: Optional[str] = None) -> WerkzeugResponse:
             """Handle marking papers as duplicates with reference IDs."""
             try:
+                # Use provided project_id or fallback to instance project_id
+                current_project_id = project_id or self.project_id
+                if not current_project_id:
+                    flash("No project specified", "error")
+                    return redirect(url_for("landing_page"))
+
+                # Get the project
+                current_project = self.papervisor.get_project(current_project_id)
+                if not current_project:
+                    flash(f"Project '{current_project_id}' not found", "error")
+                    return redirect(url_for("landing_page"))
+
+                # Get project path
+                project_path = self.data_dir / current_project.project_path
+
                 # Get duplicate mappings from form
                 duplicate_mappings = {}
 
@@ -431,7 +759,7 @@ class PapervisorWebServer:
                 if duplicate_mappings:
                     # Load the consolidated CSV
                     consolidated_path = (
-                        self.project_path / "pdfs" / "consolidated_papers.csv"
+                        project_path / "pdfs" / "consolidated_papers.csv"
                     )
                     papers_df = pd.read_csv(consolidated_path)
 
@@ -474,18 +802,43 @@ class PapervisorWebServer:
                 else:
                     flash("No duplicate relationships were specified.", "info")
 
-                return redirect(url_for("download_management"))
+                # Redirect to the appropriate page
+                if project_id:
+                    return redirect(
+                        url_for("download_management", project_id=project_id)
+                    )
+                else:
+                    return redirect(url_for("download_management"))
 
             except Exception as e:
                 flash(f"Error marking duplicates: {str(e)}", "error")
-                return redirect(url_for("download_management"))
+                if project_id:
+                    return redirect(
+                        url_for("download_management", project_id=project_id)
+                    )
+                else:
+                    return redirect(url_for("download_management"))
 
         @self.app.route("/pdfs/<source>/<filename>")
+        @self.app.route("/project/<project_id>/pdfs/<source>/<filename>")
         def serve_pdf(
-            source: str, filename: str
+            source: str, filename: str, project_id: Optional[str] = None
         ) -> Union[WerkzeugResponse, Tuple[str, int]]:
             """Serve PDF files from automatic or manual directories."""
             try:
+                # Use provided project_id or fallback to instance project_id
+                current_project_id = project_id or self.project_id
+                if not current_project_id:
+                    return "No project specified for PDF access", 400
+
+                # Get the project
+                current_project = self.papervisor.get_project(current_project_id)
+                if not current_project:
+                    return f"Project '{current_project_id}' not found", 404
+
+                # Get project path
+                project_path = self.data_dir / current_project.project_path
+
                 # Validate source
                 if source not in ["automatic", "manual"]:
                     return (
@@ -495,7 +848,7 @@ class PapervisorWebServer:
                     )
 
                 # Use relative path from the project directory
-                pdf_dir = self.project_path / "pdfs" / source
+                pdf_dir = project_path / "pdfs" / source
                 print(f"Looking for PDF in directory: {pdf_dir}")
                 print(f"Requested filename: {filename}")
 
@@ -537,17 +890,35 @@ class PapervisorWebServer:
         def text_extraction() -> Union[str, WerkzeugResponse]:
             """Text extraction page."""
             try:
-                # Get papers data - use the correct path
+                # Get project_id from query parameter or use instance default
+                project_id = request.args.get("project_id") or self.project_id
+
+                if not project_id:
+                    return render_template("error.html", error="No project specified")
+
+                # Get project data directory
+                project = self.papervisor.get_project(project_id)
+                if not project:
+                    return render_template(
+                        "error.html", error=f"Project '{project_id}' not found"
+                    )
+
+                project_data_dir = self.data_dir / project.project_path
+
+                # Get papers data - use the correct path for this project
                 consolidated_path = (
-                    self.project_path / "pdfs" / "consolidated_papers.csv"
+                    project_data_dir / "pdfs" / "consolidated_papers.csv"
                 )
+
                 if not consolidated_path.exists():
                     flash(
                         "No papers data found. Please complete the review process "
                         "first.",
                         "error",
                     )
-                    return redirect(url_for("download_management"))
+                    return redirect(
+                        url_for("download_management", project_id=project_id)
+                    )
 
                 papers_df = pd.read_csv(consolidated_path)
 
@@ -560,7 +931,9 @@ class PapervisorWebServer:
                     non_duplicate_papers = papers_df.copy()
 
                 # Create a data structure that matches what the downloads page creates
-                downloaded_files_info = self._get_downloaded_files_with_source()
+                downloaded_files_info = self._get_downloaded_files_with_source(
+                    project_data_dir
+                )
                 downloaded_files = [info["filename"] for info in downloaded_files_info]
 
                 papers_data: List[Dict[str, Any]] = []
@@ -600,7 +973,7 @@ class PapervisorWebServer:
                         )
 
                 # Load extraction status
-                extraction_status = self._load_extraction_status()
+                extraction_status = self._load_extraction_status(project_data_dir)
 
                 # Add extraction status to papers
                 for paper_dict in papers_data:
@@ -691,12 +1064,21 @@ class PapervisorWebServer:
                         paper_dict["pages_count"] = extraction_metadata.get(
                             "total_pages", 0
                         )
+                        paper_dict["raw_text_chars"] = extraction_metadata.get(
+                            "raw_text_chars", 0
+                        )
+                        paper_dict["section_text_chars"] = extraction_metadata.get(
+                            "section_text_chars", 0
+                        )
+                        paper_dict[
+                            "section_extraction_percentage"
+                        ] = extraction_metadata.get("section_extraction_percentage", 0)
 
                         # If we don't have quality metrics, try to load from JSON file
                         if paper_dict["text_length"] == 0 and paper_dict["json_file"]:
                             try:
                                 json_path = (
-                                    self.project_path
+                                    project_data_dir
                                     / "pdfs"
                                     / "extracted_texts"
                                     / paper_dict["json_file"]
@@ -710,6 +1092,17 @@ class PapervisorWebServer:
                                         )
                                         paper_dict["pages_count"] = metadata.get(
                                             "total_pages", 0
+                                        )
+                                        paper_dict["raw_text_chars"] = metadata.get(
+                                            "raw_text_chars", 0
+                                        )
+                                        paper_dict["section_text_chars"] = metadata.get(
+                                            "section_text_chars", 0
+                                        )
+                                        paper_dict[
+                                            "section_extraction_percentage"
+                                        ] = metadata.get(
+                                            "section_extraction_percentage", 0
                                         )
 
                                         # Calculate word count from sections
@@ -757,6 +1150,9 @@ class PapervisorWebServer:
                         paper_dict["character_count"] = 0
                         paper_dict["pages_count"] = 0
                         paper_dict["text_length"] = 0
+                        paper_dict["raw_text_chars"] = 0
+                        paper_dict["section_text_chars"] = 0
+                        paper_dict["section_extraction_percentage"] = 0
 
                 # Calculate KPIs
                 total_papers = len(papers_data)
@@ -784,7 +1180,7 @@ class PapervisorWebServer:
 
                 return render_template(
                     "text_extraction.html",
-                    project_id=self.project_id,
+                    project_id=project_id,
                     papers=papers_data,
                     total_papers=total_papers,
                     processed_success=processed_success,
@@ -798,16 +1194,40 @@ class PapervisorWebServer:
 
                 traceback.print_exc()
                 flash(f"Error loading text extraction page: {str(e)}", "error")
-                return redirect(url_for("download_management"))
+
+                # Try to redirect to download management with project_id,
+                # fallback to landing page
+                try:
+                    if "project_id" in locals() and project_id:
+                        return redirect(
+                            url_for("download_management", project_id=project_id)
+                        )
+                    else:
+                        return redirect(url_for("landing_page"))
+                except Exception:
+                    return redirect(url_for("landing_page"))
 
         @self.app.route("/start_text_extraction", methods=["POST"])
         def start_text_extraction() -> Union[FlaskResponse, Tuple[FlaskResponse, int]]:
             """Start text extraction for all downloaded papers."""
             try:
+                # Get project ID from request
+                project_id = request.args.get("project_id")
+                if not project_id:
+                    return (
+                        jsonify({"status": "error", "message": "Project ID required"}),
+                        400,
+                    )
+
+                project_path = self.data_dir / "literature_reviews" / project_id
+                if not project_path.exists():
+                    return (
+                        jsonify({"status": "error", "message": "Project not found"}),
+                        404,
+                    )
+
                 # Get papers data
-                consolidated_path = (
-                    self.project_path / "pdfs" / "consolidated_papers.csv"
-                )
+                consolidated_path = project_path / "pdfs" / "consolidated_papers.csv"
                 papers_df = pd.read_csv(consolidated_path)
 
                 # Filter out duplicates and get downloaded papers
@@ -818,7 +1238,9 @@ class PapervisorWebServer:
                 else:
                     non_duplicate_papers = papers_df.copy()
 
-                downloaded_files_info = self._get_downloaded_files_with_source()
+                downloaded_files_info = self._get_downloaded_files_with_source(
+                    project_path
+                )
                 downloaded_files = [info["filename"] for info in downloaded_files_info]
 
                 papers_to_extract = []
@@ -844,7 +1266,8 @@ class PapervisorWebServer:
                 import threading
 
                 extraction_thread = threading.Thread(
-                    target=self._extract_texts_background, args=(papers_to_extract,)
+                    target=self._extract_texts_background,
+                    args=(papers_to_extract, project_path),
                 )
                 extraction_thread.daemon = True
                 extraction_thread.start()
@@ -861,16 +1284,29 @@ class PapervisorWebServer:
             """Extract text from a single paper."""
             try:
                 paper_id = request.args.get("paper_id")
+                project_id = request.args.get("project_id")
+
                 if not paper_id:
                     return (
                         jsonify({"status": "error", "message": "Paper ID required"}),
                         400,
                     )
 
+                if not project_id:
+                    return (
+                        jsonify({"status": "error", "message": "Project ID required"}),
+                        400,
+                    )
+
+                project_path = self.data_dir / "literature_reviews" / project_id
+                if not project_path.exists():
+                    return (
+                        jsonify({"status": "error", "message": "Project not found"}),
+                        404,
+                    )
+
                 # Get paper data
-                consolidated_path = (
-                    self.project_path / "pdfs" / "consolidated_papers.csv"
-                )
+                consolidated_path = project_path / "pdfs" / "consolidated_papers.csv"
                 papers_df = pd.read_csv(consolidated_path)
 
                 paper_idx = int(paper_id)
@@ -883,7 +1319,9 @@ class PapervisorWebServer:
                 paper = papers_df.iloc[paper_idx]
 
                 # Find downloaded file info
-                downloaded_files_info = self._get_downloaded_files_with_source()
+                downloaded_files_info = self._get_downloaded_files_with_source(
+                    project_path
+                )
                 filename_pattern = f"{paper_id}_"
 
                 paper_dict = paper.to_dict()
@@ -896,7 +1334,7 @@ class PapervisorWebServer:
                         break
 
                 # Extract text for this paper
-                result = self._extract_text_from_paper(paper_dict)
+                result = self._extract_text_from_paper(paper_dict, project_path)
 
                 return jsonify({"status": "success", "result": result})
 
@@ -911,10 +1349,23 @@ class PapervisorWebServer:
             """Retry text extraction for all downloaded papers, including
             previously processed ones."""
             try:
+                # Get project ID from request
+                project_id = request.args.get("project_id")
+                if not project_id:
+                    return (
+                        jsonify({"status": "error", "message": "Project ID required"}),
+                        400,
+                    )
+
+                project_path = self.data_dir / "literature_reviews" / project_id
+                if not project_path.exists():
+                    return (
+                        jsonify({"status": "error", "message": "Project not found"}),
+                        404,
+                    )
+
                 # Get papers data
-                consolidated_path = (
-                    self.project_path / "pdfs" / "consolidated_papers.csv"
-                )
+                consolidated_path = project_path / "pdfs" / "consolidated_papers.csv"
                 papers_df = pd.read_csv(consolidated_path)
 
                 # Filter out duplicates and get downloaded papers
@@ -925,7 +1376,9 @@ class PapervisorWebServer:
                 else:
                     non_duplicate_papers = papers_df.copy()
 
-                downloaded_files_info = self._get_downloaded_files_with_source()
+                downloaded_files_info = self._get_downloaded_files_with_source(
+                    project_path
+                )
                 downloaded_files = [info["filename"] for info in downloaded_files_info]
 
                 papers_to_extract = []
@@ -948,13 +1401,14 @@ class PapervisorWebServer:
                                 break
 
                 # Clear previous extraction status for all papers to force re-processing
-                self._clear_extraction_status()
+                self._clear_extraction_status(project_path)
 
                 # Start extraction process in background
                 import threading
 
                 extraction_thread = threading.Thread(
-                    target=self._extract_texts_background, args=(papers_to_extract,)
+                    target=self._extract_texts_background,
+                    args=(papers_to_extract, project_path),
                 )
                 extraction_thread.daemon = True
                 extraction_thread.start()
@@ -971,12 +1425,29 @@ class PapervisorWebServer:
                 return jsonify({"status": "error", "message": str(e)}), 500
 
         @self.app.route("/extracted_texts/<filename>")
+        @self.app.route("/project/<project_id>/extracted_texts/<filename>")
         def serve_extracted_text(
-            filename: str,
+            filename: str, project_id: Optional[str] = None
         ) -> Union[WerkzeugResponse, Tuple[str, int]]:
             """Serve extracted text JSON files."""
             try:
-                extracted_dir = self.project_path / "pdfs" / "extracted_texts"
+                # Use provided project_id or fallback to instance project_id
+                current_project_id = project_id or self.project_id
+                if not current_project_id:
+                    # Try to get project_id from query parameters as a fallback
+                    current_project_id = request.args.get("project_id")
+                    if not current_project_id:
+                        return "No project specified for extracted text access", 400
+
+                # Get the project
+                current_project = self.papervisor.get_project(current_project_id)
+                if not current_project:
+                    return f"Project '{current_project_id}' not found", 404
+
+                # Get project path
+                project_path = self.data_dir / current_project.project_path
+
+                extracted_dir = project_path / "pdfs" / "extracted_texts"
                 if not extracted_dir.exists():
                     return "Extracted texts directory not found", 404
 
@@ -1030,6 +1501,320 @@ class PapervisorWebServer:
                 flash(f"Error saving screening actions: {str(e)}", "error")
                 return redirect(url_for("text_extraction"))
 
+        @self.app.route(
+            "/project/<project_id>/retry_failed_downloads", methods=["POST"]
+        )
+        @self.app.route("/retry_failed_downloads", methods=["POST"])
+        def retry_failed_downloads(
+            project_id: Optional[str] = None,
+        ) -> WerkzeugResponse:
+            """Retry downloading failed papers."""
+            try:
+                # Use provided project_id or fallback to instance project_id
+                current_project_id = project_id or self.project_id
+                if not current_project_id:
+                    flash("No project specified", "error")
+                    return redirect(url_for("landing_page"))
+
+                # Get the project
+                current_project = self.papervisor.get_project(current_project_id)
+                if not current_project:
+                    flash(f"Project '{current_project_id}' not found", "error")
+                    return redirect(url_for("landing_page"))
+
+                # Start download in background thread
+                self._start_download_process(current_project_id, retry_failed=True)
+
+                flash("Retry download process started. Check progress below.", "info")
+
+                # Redirect to the appropriate download management page
+                if project_id:
+                    return redirect(
+                        url_for("download_management", project_id=project_id)
+                    )
+                else:
+                    return redirect(url_for("download_management"))
+
+            except Exception as e:
+                flash(f"Error starting retry download: {str(e)}", "error")
+                if project_id:
+                    return redirect(
+                        url_for("download_management", project_id=project_id)
+                    )
+                else:
+                    return redirect(url_for("download_management"))
+
+        @self.app.route("/project/<project_id>/api/download_progress")
+        @self.app.route("/api/download_progress")
+        def api_download_progress(
+            project_id: Optional[str] = None,
+        ) -> Union[FlaskResponse, Tuple[FlaskResponse, int]]:
+            """API endpoint to get download progress."""
+            try:
+                # Use provided project_id or fallback to instance project_id
+                current_project_id = project_id or self.project_id
+                if not current_project_id:
+                    return jsonify({"error": "No project specified"}), 400
+
+                progress = self.progress.get(current_project_id)
+                if progress:
+                    return jsonify(asdict(progress))
+                else:
+                    return jsonify(
+                        {
+                            "project_id": current_project_id,
+                            "total_papers": 0,
+                            "completed": 0,
+                            "failed": 0,
+                            "success": 0,
+                            "current_paper": "",
+                            "is_running": False,
+                            "error_message": "",
+                            "start_time": 0.0,
+                        }
+                    )
+
+            except Exception as e:
+                return jsonify({"error": str(e)}), 500
+
+        @self.app.route("/project/<project_id>/cancel_download", methods=["POST"])
+        @self.app.route("/cancel_download", methods=["POST"])
+        def cancel_download(project_id: Optional[str] = None) -> WerkzeugResponse:
+            """Cancel ongoing download process."""
+            try:
+                current_project_id = project_id or self.project_id
+                if not current_project_id:
+                    flash("No project specified", "error")
+                    return redirect(url_for("landing_page"))
+
+                if current_project_id in self._download_progress:
+                    self._download_progress[current_project_id].is_running = False
+                    flash(
+                        f"Download cancelled for project '{current_project_id}'",
+                        "warning",
+                    )
+                else:
+                    flash("No active download to cancel", "info")
+
+                if project_id:
+                    return redirect(
+                        url_for("download_management", project_id=project_id)
+                    )
+                else:
+                    return redirect(url_for("download_management"))
+
+            except Exception as e:
+                flash(f"Error cancelling download: {str(e)}", "error")
+                if project_id:
+                    return redirect(
+                        url_for("download_management", project_id=project_id)
+                    )
+                else:
+                    return redirect(url_for("download_management"))
+
+        @self.app.route("/upload_pdf", methods=["POST"])
+        def upload_pdf_legacy() -> WerkzeugResponse:
+            """Legacy route for PDF upload - redirect to project-specific route."""
+            if not self.project_id:
+                flash("No project specified", "error")
+                return redirect(url_for("landing_page"))
+            return redirect(url_for("project_upload_pdf", project_id=self.project_id))
+
+        @self.app.route("/project/<project_id>/upload_pdf", methods=["POST"])
+        def project_upload_pdf(project_id: str) -> WerkzeugResponse:
+            """Handle PDF file upload for manual addition."""
+            try:
+                if not project_id:
+                    flash("No project specified", "error")
+                    return redirect(url_for("landing_page"))
+
+                # Get the project
+                current_project = self.papervisor.get_project(project_id)
+                if not current_project:
+                    flash(f"Project '{project_id}' not found", "error")
+                    return redirect(url_for("landing_page"))
+
+                # Get project path
+                project_path = self.data_dir / current_project.project_path
+
+                paper_id = request.form.get("paper_id")
+                uploaded_file = request.files.get("pdf_file")
+
+                if not paper_id:
+                    flash("Paper ID is required.", "error")
+                    return redirect(
+                        url_for("download_management", project_id=project_id)
+                    )
+
+                # Check if file was uploaded
+                if not uploaded_file or not uploaded_file.filename:
+                    flash("Please select a PDF file to upload.", "error")
+                    return redirect(
+                        url_for("download_management", project_id=project_id)
+                    )
+
+                # Validate file type
+                if not uploaded_file.filename.lower().endswith(".pdf"):
+                    flash("Please upload a PDF file.", "error")
+                    return redirect(
+                        url_for("download_management", project_id=project_id)
+                    )
+
+                # Load the paper data to get title/author info for filename
+                consolidated_path = project_path / "pdfs" / "consolidated_papers.csv"
+                papers_df = pd.read_csv(consolidated_path)
+
+                if int(float(paper_id)) >= len(papers_df):
+                    flash("Invalid paper ID.", "error")
+                    return redirect(
+                        url_for("download_management", project_id=project_id)
+                    )
+
+                paper = papers_df.iloc[int(float(paper_id))]
+
+                # Generate filename
+                filename = self._generate_pdf_filename(paper, paper_id)
+
+                # Save file to manual directory
+                manual_dir = project_path / "pdfs" / "manual"
+                manual_dir.mkdir(parents=True, exist_ok=True)
+
+                file_path = manual_dir / filename
+                uploaded_file.save(str(file_path))
+
+                flash(
+                    f"Successfully uploaded PDF for paper {paper_id}: {filename}",
+                    "success",
+                )
+                return redirect(url_for("download_management", project_id=project_id))
+
+            except Exception as e:
+                flash(f"Error uploading PDF: {str(e)}", "error")
+                return redirect(url_for("download_management", project_id=project_id))
+
+        @self.app.route("/project/<project_id>/screening")
+        def screening(project_id: Optional[str] = None) -> WerkzeugResponse:
+            """Page 4: Screening included papers with GPT justification."""
+            # Determine which project
+            current_project_id = project_id or self.project_id
+            if not current_project_id:
+                return render_template("error.html", error="No project specified")
+            # Get the project
+            project = self.papervisor.get_project(current_project_id)
+            if not project:
+                return render_template(
+                    "error.html", error=f"Project '{current_project_id}' not found"
+                )
+            project_path = self.data_dir / project.project_path
+            # Load consolidated data
+            consolidated_path = project_path / "pdfs" / "consolidated_papers.csv"
+            if not consolidated_path.exists():
+                return render_template(
+                    "error.html",
+                    error="No consolidated papers found. Please run download first.",
+                )
+            papers_df = pd.read_csv(consolidated_path)
+            # Load extraction & screening statuses
+            extraction_status = self._load_extraction_status(project_path)
+            screening_results = self._load_screening_results(project_path)
+            # Build list of included papers
+            papers_to_screen = []
+            for idx, row in papers_df.iterrows():
+                key = str(idx)
+                action = extraction_status.get(key, {}).get("screening_action", "")
+                if action == "include":
+                    result = screening_results.get(key, {})
+                    papers_to_screen.append(
+                        {
+                            "paper_id": idx,
+                            "title": row.get("title", row.get("Title", "")),
+                            "result": result.get("result", "pending"),
+                            "justification": result.get("justification", ""),
+                        }
+                    )
+            total = len(papers_to_screen)
+            done = len([p for p in papers_to_screen if p["result"] != "pending"])
+            pending = total - done
+            return render_template(
+                "screening.html",
+                project_id=current_project_id,
+                papers=papers_to_screen,
+                total=total,
+                processed=done,
+                pending=pending,
+            )
+
+        @self.app.route("/project/<project_id>/start_screening", methods=["POST"])
+        @self.app.route("/start_screening", methods=["POST"])
+        def start_screening(
+            project_id: Optional[str] = None,
+        ) -> Union[FlaskResponse, Tuple[FlaskResponse, int]]:
+            """Start GPT-based screening for all included papers."""
+            try:
+                print(f"Starting screening for project: {project_id}")
+                current_project_id = project_id or self.project_id
+                if not current_project_id:
+                    return (
+                        jsonify({"status": "error", "message": "Project ID required"}),
+                        400,
+                    )
+                project = self.papervisor.get_project(current_project_id)
+                if not project:
+                    return (
+                        jsonify({"status": "error", "message": "Project not found"}),
+                        404,
+                    )
+                project_path = self.data_dir / project.project_path
+                # Load data and statuses
+                consolidated_path = project_path / "pdfs" / "consolidated_papers.csv"
+                papers_df = pd.read_csv(consolidated_path)
+                extraction_status = self._load_extraction_status(project_path)
+                screening_results = self._load_screening_results(project_path)
+                to_screen = []
+                for idx, row in papers_df.iterrows():
+                    key = str(idx)
+                    if (
+                        extraction_status.get(key, {}).get("screening_action")
+                        == "include"
+                        and key not in screening_results
+                    ):
+                        to_screen.append(
+                            {
+                                "paper_id": idx,
+                                "title": row.get("title", row.get("Title", "")),
+                                "abstract": row.get("Abstract", ""),
+                            }
+                        )
+                print(f"Found {len(to_screen)} papers to screen")
+                # Run in background thread
+                thread = threading.Thread(
+                    target=self._screen_papers_background,
+                    args=(to_screen, project_path),
+                )
+                thread.daemon = True
+                thread.start()
+                flash("Screening process started", "info")
+                return jsonify({"status": "started"})
+            except Exception as e:
+                print(f"Error in start_screening: {e}")
+                import traceback
+
+                traceback.print_exc()
+                return jsonify({"status": "error", "message": str(e)}), 500
+
+        @self.app.route("/screening")
+        def screening_legacy() -> WerkzeugResponse:
+            """Legacy route for screening - redirect to project-specific route."""
+            project_id = request.args.get("project_id") or self.project_id
+            if not project_id:
+                return redirect(url_for("landing_page"))
+            return redirect(url_for("screening", project_id=project_id))
+
+    def stop_download(self, project_id: str) -> None:
+        """Stop the download process for a project."""
+        if project_id in self._download_progress:
+            self._download_progress[project_id].is_running = False
+
     def _get_downloaded_files(self) -> List[str]:
         """Get list of downloaded PDF files from both automatic and manual
         directories."""
@@ -1047,12 +1832,20 @@ class PapervisorWebServer:
 
         return downloaded_files
 
-    def _get_downloaded_files_with_source(self) -> List[Dict[str, str]]:
+    def _get_downloaded_files_with_source(
+        self, project_path: Optional[Path] = None
+    ) -> List[Dict[str, str]]:
         """Get list of downloaded PDF files with their source directory."""
-        files_info = []
+        files_info: List[Dict[str, str]] = []
+
+        # Use provided project_path or fallback to instance property
+        if project_path is None:
+            if self.project is None:
+                return files_info
+            project_path = self.project_path
 
         # Check automatic directory
-        auto_dir = self.project_path / "pdfs" / "automatic"
+        auto_dir = project_path / "pdfs" / "automatic"
         if auto_dir.exists():
             for f in auto_dir.glob("*.pdf"):
                 files_info.append(
@@ -1060,7 +1853,7 @@ class PapervisorWebServer:
                 )
 
         # Check manual directory
-        manual_dir = self.project_path / "pdfs" / "manual"
+        manual_dir = project_path / "pdfs" / "manual"
         if manual_dir.exists():
             for f in manual_dir.glob("*.pdf"):
                 files_info.append(
@@ -1100,18 +1893,30 @@ class PapervisorWebServer:
         return urls
 
     def _download_from_url(
-        self, paper: pd.Series, url: str, paper_id: str
+        self,
+        paper: pd.Series,
+        url: str,
+        paper_id: str,
+        project_path: Optional[Path] = None,
     ) -> PaperDownloadResult:
         """Download a paper from a specific URL to the manual folder."""
         try:
-            downloader = PDFDownloader(self.project_path)
+            # Use provided project_path or fallback to instance property
+            if project_path is None:
+                if self.project is None:
+                    raise ValueError(
+                        "No project specified and no default project available"
+                    )
+                project_path = self.data_dir / self.project.project_path
+
+            downloader = PDFDownloader(project_path)
 
             # Create a modified paper series with the submitted URL as FullTextURL
             modified_paper = paper.copy()
             modified_paper["FullTextURL"] = url
 
             # Use the manual directory for web-submitted downloads
-            output_dir = self.project_path / "pdfs" / "manual"
+            output_dir = project_path / "pdfs" / "manual"
             output_dir.mkdir(
                 parents=True, exist_ok=True
             )  # Ensure manual directory exists
@@ -1227,9 +2032,12 @@ class PapervisorWebServer:
 
         return final_similarity
 
-    def _load_extraction_status(self) -> Dict[str, Any]:
+    def _load_extraction_status(
+        self, project_path: Optional[Path] = None
+    ) -> Dict[str, Any]:
         """Load text extraction status from JSON file."""
-        status_file = self.project_path / "extraction_status.json"
+        current_project_path = project_path or self.project_path
+        status_file = current_project_path / "extraction_status.json"
         if status_file.exists():
             try:
                 with open(status_file, "r") as f:
@@ -1239,18 +2047,22 @@ class PapervisorWebServer:
                 print(f"Error loading extraction status: {e}")
         return {}
 
-    def _save_extraction_status(self, status: Dict[str, Any]) -> None:
+    def _save_extraction_status(
+        self, status: Dict[str, Any], project_path: Optional[Path] = None
+    ) -> None:
         """Save text extraction status to JSON file."""
-        status_file = self.project_path / "extraction_status.json"
+        current_project_path = project_path or self.project_path
+        status_file = current_project_path / "extraction_status.json"
         try:
             with open(status_file, "w") as f:
                 json.dump(status, f, indent=2)
         except Exception as e:
             print(f"Error saving extraction status: {e}")
 
-    def _clear_extraction_status(self) -> None:
+    def _clear_extraction_status(self, project_path: Optional[Path] = None) -> None:
         """Clear all extraction status to force re-processing."""
-        status_file = self.project_path / "extraction_status.json"
+        current_project_path = project_path or self.project_path
+        status_file = current_project_path / "extraction_status.json"
         try:
             # Remove the status file to start fresh
             if status_file.exists():
@@ -1259,30 +2071,53 @@ class PapervisorWebServer:
         except Exception as e:
             print(f"Error clearing extraction status: {e}")
 
-    def _extract_texts_background(self, papers_list: List[Dict[str, Any]]) -> None:
+    def _extract_texts_background(
+        self, papers_list: List[Dict[str, Any]], project_path: Path
+    ) -> None:
         """Extract texts from all papers in background thread."""
         try:
             print(f"Starting text extraction for {len(papers_list)} papers")
 
+            # Update progress for this project
+            project_id = papers_list[0]["project_id"] if papers_list else ""
+            self._update_progress(project_id, total_papers=len(papers_list))
+
             for paper in papers_list:
                 try:
-                    result = self._extract_text_from_paper(paper)
+                    result = self._extract_text_from_paper(paper, project_path)
                     print(f"Processed paper {paper['paper_id']}: {result['status']}")
+
+                    # Update progress after each paper
+                    self._update_progress(
+                        project_id,
+                        completed=self.progress[project_id].completed + 1,
+                        current_paper=paper["title"],
+                    )
                 except Exception as e:
                     print(f"Error processing paper {paper['paper_id']}: {e}")
+
+                    # Update progress with error
+                    self._update_progress(
+                        project_id,
+                        failed=self.progress[project_id].failed + 1,
+                        current_paper=paper["title"],
+                        error_message=str(e),
+                    )
 
         except Exception as e:
             print(f"Error in background text extraction: {e}")
 
-    def _extract_text_from_paper(self, paper: Dict) -> Dict:
+    def _extract_text_from_paper(
+        self, paper: Dict, project_path: Path
+    ) -> Dict[str, Any]:
         """Extract text from a single paper's PDF."""
         try:
             paper_id = str(paper["paper_id"])
 
             # Update status to processing
-            status = self._load_extraction_status()
+            status = self._load_extraction_status(project_path)
             status[paper_id] = {"status": "processing", "sections": [], "json_file": ""}
-            self._save_extraction_status(status)
+            self._save_extraction_status(status, project_path)
 
             # Find the PDF file
             pdf_file = None
@@ -1290,9 +2125,7 @@ class PapervisorWebServer:
             downloaded_file = paper.get("downloaded_file", "")
 
             if downloaded_file:
-                pdf_path = (
-                    self.project_path / "pdfs" / download_source / downloaded_file
-                )
+                pdf_path = project_path / "pdfs" / download_source / downloaded_file
                 if pdf_path.exists():
                     pdf_file = pdf_path
 
@@ -1304,14 +2137,14 @@ class PapervisorWebServer:
                     "json_file": "",
                     "error": "PDF file not found",
                 }
-                self._save_extraction_status(status)
+                self._save_extraction_status(status, project_path)
                 return {"status": "failed", "error": "PDF file not found"}
 
             # Extract text using a simple PDF text extraction
             extracted_data = self._extract_pdf_text(pdf_file, paper)
 
             # Create extracted_texts directory
-            extracted_dir = self.project_path / "pdfs" / "extracted_texts"
+            extracted_dir = project_path / "pdfs" / "extracted_texts"
             extracted_dir.mkdir(exist_ok=True)
 
             # Save extracted text as JSON
@@ -1358,10 +2191,19 @@ class PapervisorWebServer:
                     "total_pages": extracted_data.get("extraction_metadata", {}).get(
                         "total_pages", 0
                     ),
+                    "raw_text_chars": extracted_data.get("extraction_metadata", {}).get(
+                        "raw_text_chars", 0
+                    ),
+                    "section_text_chars": extracted_data.get(
+                        "extraction_metadata", {}
+                    ).get("section_text_chars", 0),
+                    "section_extraction_percentage": extracted_data.get(
+                        "extraction_metadata", {}
+                    ).get("section_extraction_percentage", 0),
                     "word_count": word_count,
                 },
             }
-            self._save_extraction_status(status)
+            self._save_extraction_status(status, project_path)
 
             return {
                 "status": "success",
@@ -1373,18 +2215,18 @@ class PapervisorWebServer:
             print(f"Error extracting text from paper {paper_id}: {e}")
 
             # Update status to failed
-            status = self._load_extraction_status()
+            status = self._load_extraction_status(project_path)
             status[paper_id] = {
                 "status": "failed",
                 "sections": [],
                 "json_file": "",
                 "error": str(e),
             }
-            self._save_extraction_status(status)
+            self._save_extraction_status(status, project_path)
 
             return {"status": "failed", "error": str(e)}
 
-    def _extract_pdf_text(self, pdf_path: Path, paper: Dict) -> Dict:
+    def _extract_pdf_text(self, pdf_path: Path, paper: Dict) -> Dict[str, Any]:
         """Extract text from PDF and organize into academic paper sections."""
         try:
             import PyPDF2
@@ -1397,20 +2239,36 @@ class PapervisorWebServer:
                 with open(pdf_path, "rb") as file:
                     pdf_reader = PyPDF2.PdfReader(file)
                     total_pages = len(pdf_reader.pages)
+
                     for page_num, page in enumerate(pdf_reader.pages):
                         try:
+                            # Try different extraction methods
                             page_text = page.extract_text()
+
+                            # If standard extraction gives poor results,
+                            # try alternatives
+                            if not page_text or len(page_text.strip()) < 50:
+                                # Try extracting with different parameters or methods
+                                try:
+                                    # Alternative extraction method if available
+                                    page_text = page.extract_text()
+                                except Exception:
+                                    page_text = ""
+
                             if page_text:
                                 text_content += page_text + "\n"
+
                         except Exception as e:
                             print(
                                 f"Error extracting text from page {page_num + 1} of "
                                 f"{pdf_path}: {e}"
                             )
                             continue
+
             except Exception as e:
                 print(f"Error opening PDF {pdf_path}: {e}")
                 # Return minimal data structure for failed extraction
+
                 return self._create_fallback_extraction_data(paper, pdf_path, str(e))
 
             if not text_content.strip():
@@ -1427,6 +2285,15 @@ class PapervisorWebServer:
 
             # Extract academic paper sections
             sections = self._extract_academic_sections(cleaned_text)
+
+            # Calculate section extraction quality metrics
+            total_raw_chars = len(cleaned_text)
+            total_section_chars = sum(len(content) for content in sections.values())
+            section_extraction_percentage = (
+                (total_section_chars / total_raw_chars * 100)
+                if total_raw_chars > 0
+                else 0
+            )
 
             # Create structured output following the requirements
             extracted_data = {
@@ -1465,6 +2332,11 @@ class PapervisorWebServer:
                     "extraction_date": pd.Timestamp.now().isoformat(),
                     "total_pages": total_pages,
                     "text_length": len(cleaned_text),
+                    "raw_text_chars": total_raw_chars,
+                    "section_text_chars": total_section_chars,
+                    "section_extraction_percentage": round(
+                        section_extraction_percentage, 1
+                    ),
                     "sections_found": list(sections.keys()),
                     "extraction_method": "PyPDF2_academic_parser",
                 },
@@ -1485,23 +2357,30 @@ class PapervisorWebServer:
         """Clean and preprocess extracted text."""
         import re
 
-        # Remove excessive whitespace and normalize line breaks
-        text = re.sub(r"\n\s*\n", "\n\n", text)
-        text = re.sub(r"[ \t]+", " ", text)
+        # Remove excessive whitespace and normalize line breaks, but preserve structure
+        text = re.sub(
+            r"\n\s*\n\s*\n", "\n\n", text
+        )  # Reduce multiple newlines to double
+        text = re.sub(r"[ \t]+", " ", text)  # Normalize spaces and tabs
 
-        # Remove page numbers and headers/footers (common patterns)
-        text = re.sub(r"\n\d+\s*\n", "\n", text)
-        text = re.sub(r"\n[A-Z\s]+\n", "\n", text)  # All caps headers
+        # Remove page numbers and headers/footers (common patterns) - be more careful
+        text = re.sub(r"\n\d+\s*\n", "\n", text)  # Remove isolated page numbers
+        text = re.sub(
+            r"\n[A-Z\s]{10,}\n", "\n", text
+        )  # Remove long all-caps headers (10+ chars)
 
         # Fix common PDF extraction issues
-        text = re.sub(r"([a-z])([A-Z])", r"\1 \2", text)  # Missing spaces
+        text = re.sub(r"([a-z])([A-Z])", r"\1 \2", text)  # Missing spaces between words
         text = re.sub(
             r"(\w)-\s*\n\s*(\w)", r"\1\2", text
         )  # Hyphenated words across lines
 
-        return text.strip()
+        # Preserve important punctuation and structure
+        text = text.strip()
 
-    def _extract_paper_metadata(self, paper: Dict, text: str) -> Dict:
+        return text
+
+    def _extract_paper_metadata(self, paper: Dict, text: str) -> Dict[str, Any]:
         """Extract and enhance paper metadata."""
         metadata = {}
 
@@ -1719,7 +2598,6 @@ class PapervisorWebServer:
                     break
 
         # Second pass: Enhanced numbered section detection
-        # Look for patterns like "2 Forecasting", "3. Methods", etc.
         numbered_section_pattern = r"^(\d+)\.?\s+([A-Z][a-zA-Z\s]+)$"
         for i, line in enumerate(lines):
             line_clean = line.strip()
@@ -1810,8 +2688,8 @@ class PapervisorWebServer:
             if i + 1 < len(sorted_sections):
                 end_line = sorted_sections[i + 1][1]
             else:
-                # For the last section, use text length but limit to reasonable size
-                end_line = min(len(lines), start_line + 200)  # Limit to ~200 lines
+                # For the last section, use the full remaining text
+                end_line = len(lines)
 
             # Extract section content
             section_lines = lines[start_line + 1 : end_line]
@@ -1820,15 +2698,47 @@ class PapervisorWebServer:
             # Clean up content
             content = self._clean_section_content(content)
 
-            # More lenient content filtering - include sections with at least 20 words
-            if content and len(content.split()) >= 20:  # At least 20 words
+            # More lenient content filtering - include sections with at least 10 words
+            if content and len(content.split()) >= 10:  # Reduced from 20 to 10 words
                 sections[section_name] = content
+                print(
+                    (
+                        f"DEBUG: Extracted section '{section_name}' with "
+                        f"{len(content.split())} words"
+                    )
+                )
+                # Print first and last 50 characters for debugging
+                if len(content) > 100:
+                    print(
+                        f"DEBUG: Section '{section_name}' starts: '{content[:50]}...'"
+                    )
+                    print(f"DEBUG: Section '{section_name}' ends: '...{content[-50:]}'")
+                else:
+                    print(f"DEBUG: Section '{section_name}' content: '{content}'")
 
         # Special handling for abstract - often appears early without clear header
         if "abstract" not in sections:
             abstract_content = self._extract_abstract_fallback(text)
             if abstract_content:
                 sections["abstract"] = abstract_content
+
+        # Add a summary of what was extracted
+        total_extracted = sum(len(content) for content in sections.values())
+
+        # If we didn't extract much content, add a fallback strategy
+        if total_extracted < len(text) * 0.5:  # If we extracted less than 50% of text
+            # Split text into chunks as fallback
+            text_chunks = self._split_text_into_chunks(text, chunk_size=2000)
+            for i, chunk in enumerate(text_chunks):
+                if chunk.strip() and len(chunk.split()) >= 20:
+                    sections[f"text_chunk_{i+1}"] = chunk.strip()
+
+            # Also try to get the end of the document which might be conclusions
+            lines = text.split("\n")
+            if len(lines) > 50:
+                last_portion = "\n".join(lines[-50:]).strip()  # Last 50 lines
+                if last_portion and len(last_portion.split()) >= 20:
+                    sections["document_end"] = last_portion
 
         return sections
 
@@ -2015,38 +2925,398 @@ class PapervisorWebServer:
             "word_count": 0,
         }
 
+    def _update_progress(self, project_id: str, **kwargs: Any) -> None:
+        """Update the download progress for a project."""
+        if project_id not in self.progress:
+            self.progress[project_id] = DownloadProgress(project_id)
+
+        # Update progress fields
+        for key, value in kwargs.items():
+            setattr(self.progress[project_id], key, value)
+
     def run(
         self, host: str = "127.0.0.1", port: int = 5000, debug: bool = False
     ) -> None:
         """Run the Flask development server."""
-        print(f"Starting Papervisor Web Server for project '{self.project_id}'")
+        if self.project_id:
+            print(f"Starting Papervisor Web Server for project '{self.project_id}'")
+        else:
+            print("Starting Papervisor Web Server in multi-project mode")
         print(f"Access the dashboard at: http://{host}:{port}")
         self.app.run(host=host, port=port, debug=debug)
 
+    def _start_download_process(
+        self, project_id: str, retry_failed: bool = False
+    ) -> None:
+        """Start download process in background thread."""
+        # Initialize lock for this project if it doesn't exist
+        if project_id not in self._download_locks:
+            self._download_locks[project_id] = threading.Lock()
 
-def create_app(project_id: str, data_dir: str = "data") -> Flask:
-    """Create and configure the Flask app.
+        # Check if download is already running
+        if (
+            project_id in self._download_progress
+            and self._download_progress[project_id].is_running
+        ):
+            print(f"Download already running for project {project_id}")
+            return
 
-    Args:
-        project_id: Literature review project ID
-        data_dir: Data directory path
+        # Start download in background thread
+        download_thread = threading.Thread(
+            target=self._download_worker, args=(project_id, retry_failed), daemon=True
+        )
+        download_thread.start()
 
-    Returns:
-        Configured Flask app
-    """
-    server = PapervisorWebServer(project_id, data_dir)
-    return server.app
+    def _download_worker(self, project_id: str, retry_failed: bool = False) -> None:
+        """Background worker for downloading papers with real-time progress tracking."""
+        try:
+            with self._download_locks[project_id]:
+                # Initialize progress tracking
+                self._download_progress[project_id] = DownloadProgress(
+                    project_id=project_id, is_running=True, start_time=time.time()
+                )
 
+                # Get project and validate
+                current_project = self.papervisor.get_project(project_id)
+                if not current_project:
+                    self._download_progress[
+                        project_id
+                    ].error_message = f"Project '{project_id}' not found"
+                    self._download_progress[project_id].is_running = False
+                    return
 
-if __name__ == "__main__":
-    import sys
+                project_path = self.data_dir / current_project.project_path
+                consolidated_path = project_path / "pdfs" / "consolidated_papers.csv"
 
-    if len(sys.argv) < 2:
-        print("Usage: python -m papervisor.web_server <project_id> [data_dir]")
-        sys.exit(1)
+                if not consolidated_path.exists():
+                    self._download_progress[
+                        project_id
+                    ].error_message = "No consolidated papers file found"
+                    self._download_progress[project_id].is_running = False
+                    return
 
-    project_id = sys.argv[1]
-    data_dir = sys.argv[2] if len(sys.argv) > 2 else "data"
+                papers_df = pd.read_csv(consolidated_path)
 
-    server = PapervisorWebServer(project_id, data_dir)
-    server.run()
+                # Determine which papers to download
+                papers_to_download = []
+                if retry_failed:
+                    # Only retry papers that don't have downloaded files
+                    downloaded_files_info = self._get_downloaded_files_with_source(
+                        project_path
+                    )
+                    downloaded_files = [
+                        info["filename"] for info in downloaded_files_info
+                    ]
+
+                    for idx, paper in papers_df.iterrows():
+                        paper_id = str(idx)
+                        filename_pattern = f"{paper_id}_"
+                        is_downloaded = any(
+                            f.startswith(filename_pattern) for f in downloaded_files
+                        )
+                        if not is_downloaded:
+                            papers_to_download.append((idx, paper))
+
+                    print(
+                        (
+                            f"🔄 Retrying download for {len(papers_to_download)} "
+                            f"missing papers..."
+                        )
+                    )
+                else:
+                    papers_to_download = list(papers_df.iterrows())
+                    print(
+                        f"📥 Starting download for {len(papers_to_download)} papers..."
+                    )
+
+                # Set total papers count
+                self._download_progress[project_id].total_papers = len(
+                    papers_to_download
+                )
+
+                if not papers_to_download:
+                    self._download_progress[
+                        project_id
+                    ].error_message = "No papers to download"
+                    self._download_progress[project_id].is_running = False
+                    return
+
+                # Initialize PDF downloader
+                downloader = PDFDownloader(project_path)
+                automatic_dir = project_path / "pdfs" / "automatic"
+                automatic_dir.mkdir(parents=True, exist_ok=True)
+
+                # Download papers one by one with real-time progress updates
+                successful_downloads = 0
+                failed_downloads = 0
+
+                for i, (idx, paper) in enumerate(papers_to_download):
+                    # Check if download was cancelled
+                    if not self._download_progress[project_id].is_running:
+                        print("❌ Download cancelled by user")
+                        break
+
+                    paper_id = str(idx)
+                    paper_title = paper.get(
+                        "title", paper.get("Title", f"Paper {paper_id}")
+                    )
+
+                    print(
+                        (
+                            f"📄 Downloading {i+1}/{len(papers_to_download)}: "
+                            f"{paper_title[:50]}..."
+                        )
+                    )
+
+                    try:
+                        # Try to download this specific paper
+                        result = downloader._download_paper_pdf(
+                            paper,
+                            automatic_dir,
+                            "retry_automatic" if retry_failed else "automatic",
+                        )
+
+                        if result.status == DownloadStatus.SUCCESS:
+                            successful_downloads += 1
+                            print(f"✅ Downloaded: {result.title[:50]}")
+                        else:
+                            failed_downloads += 1
+                            print(f"❌ Failed: {result.error_message}")
+
+                    except Exception as e:
+                        failed_downloads += 1
+                        print(f"❌ Error downloading {paper_id}: {str(e)[:100]}")
+
+                    # Update progress in real-time
+                    self._download_progress[project_id].completed = i + 1
+                    self._download_progress[project_id].success = successful_downloads
+                    self._download_progress[project_id].failed = failed_downloads
+
+                    # Brief pause to prevent overwhelming the system
+                    time.sleep(0.2)
+
+                # Mark download as completed
+                self._download_progress[project_id].is_running = False
+                total_papers = len(papers_to_download)
+
+                print("🎯 Download completed!")
+                print(f"   ✅ Successful: {successful_downloads}/{total_papers}")
+                print(f"   ❌ Failed: {failed_downloads}/{total_papers}")
+                print(
+                    f"   📊 Success rate: {(successful_downloads/total_papers*100):.1f}%"
+                )
+
+        except Exception as e:
+            print(f"💥 Critical error in download worker: {e}")
+            import traceback
+
+            traceback.print_exc()
+            if project_id in self._download_progress:
+                self._download_progress[project_id].error_message = str(e)
+                self._download_progress[project_id].is_running = False
+
+    def _generate_pdf_filename(self, paper: pd.Series, paper_id: str) -> str:
+        """Generate a proper filename for a PDF based on paper metadata."""
+        import re
+
+        # Get paper information
+        title = paper.get("title", paper.get("Title", "Unknown_Title"))
+        authors = paper.get("authors", paper.get("Authors", "Unknown_Author"))
+        year = paper.get("year", paper.get("Year", "Unknown"))
+
+        # Clean title for filename (remove special characters)
+        clean_title = re.sub(r"[^\w\s-]", "", str(title))
+        clean_title = re.sub(r"[-\s]+", "_", clean_title)
+        clean_title = clean_title[:50]  # Limit length
+
+        # Get first author's last name
+        first_author = (
+            str(authors).split(",")[0].split(" ")[-1] if authors else "Unknown"
+        )
+        first_author = re.sub(r"[^\w]", "", first_author)
+
+        # Create filename: {paper_id}_{FirstAuthor}_{Year}_{Title}.pdf
+        filename = f"{paper_id}_{first_author}_{year}_{clean_title}.pdf"
+
+        # Remove any remaining problematic characters
+        filename = re.sub(r'[<>:"/\\|?*]', "_", filename)
+
+        return filename
+
+    def _split_text_into_chunks(self, text: str, chunk_size: int = 2000) -> List[str]:
+        """Split text into overlapping chunks as fallback when section extraction fails.
+
+        Args:
+            text: The full text to split
+            chunk_size: Target size for each chunk in characters
+
+        Returns:
+            List of text chunks
+        """
+        chunks = []
+        words = text.split()
+
+        current_chunk: List[str] = []
+        current_length = 0
+
+        for word in words:
+            word_length = len(word) + 1  # +1 for space
+
+            if current_length + word_length > chunk_size and current_chunk:
+                # Save current chunk
+                chunks.append(" ".join(current_chunk))
+
+                # Start new chunk with overlap (last 20% of words)
+                overlap_size = max(1, len(current_chunk) // 5)
+                current_chunk = current_chunk[-overlap_size:]
+                current_length = sum(len(w) + 1 for w in current_chunk)
+
+            current_chunk.append(word)
+            current_length += word_length
+
+        # Add the last chunk
+        if current_chunk:
+            chunks.append(" ".join(current_chunk))
+
+        return chunks
+
+    def _load_screening_results(self, project_path: Path) -> Dict[str, Any]:
+        """Load screening results from JSON file."""
+        file = project_path / "screening_results.json"
+        if file.exists():
+            try:
+                with open(file, "r") as f:
+                    data = json.load(f)
+                    if isinstance(data, dict):
+                        return data
+                    else:
+                        return {}
+            except Exception:
+                return {}
+        return {}
+
+    def _save_screening_results(
+        self, results: Dict[str, Any], project_path: Path
+    ) -> None:
+        """Save screening results to JSON file."""
+        file = project_path / "screening_results.json"
+        try:
+            with open(file, "w") as f:
+                json.dump(results, f, indent=2)
+        except Exception as e:
+            print(f"Error saving screening results: {e}")
+
+    def _screen_paper(self, paper: Dict, project_path: Path) -> None:
+        """Call GPT API to decide inclusion and justification."""
+        import os
+
+        key = str(paper["paper_id"])
+        abstract = paper.get("abstract", "")
+
+        try:
+            # Check if we should use test mode
+            use_test_mode = os.getenv("PAPERVISOR_TEST_MODE", "true").lower() == "true"
+
+            if use_test_mode:
+                # Mock screening for testing - simulate realistic results
+                import random
+                import time
+
+                # Simulate processing time
+                time.sleep(random.uniform(0.5, 2.0))
+
+                # Simple heuristic based on abstract length and keywords
+                if not abstract or len(abstract) < 50:
+                    result = "No"
+                    justification = (
+                        "Abstract too short or missing - insufficient information "
+                        "for evaluation."
+                    )
+                else:
+                    # Look for research-related keywords
+                    keywords = [
+                        "research",
+                        "study",
+                        "analysis",
+                        "method",
+                        "result",
+                        "data",
+                        "experiment",
+                        "model",
+                        "approach",
+                        "framework",
+                    ]
+                    keyword_count = sum(
+                        1 for kw in keywords if kw.lower() in abstract.lower()
+                    )
+
+                    if keyword_count >= 3:
+                        result = "Yes"
+                        justification = (
+                            f"Abstract contains {keyword_count} research-related "
+                            f"keywords and appears to be a relevant academic paper "
+                            f"for the literature review."
+                        )
+                    elif keyword_count >= 1:
+                        result = random.choice(["Yes", "No"])
+                        justification = (
+                            f"Abstract contains some research content "
+                            f"({keyword_count} keywords) but relevance is uncertain."
+                        )
+                    else:
+                        result = "No"
+                        justification = (
+                            "Abstract lacks sufficient research-related content "
+                            "for inclusion in literature review."
+                        )
+
+            elif not os.getenv("OPENAI_API_KEY"):
+                result = "error"
+                justification = (
+                    "OpenAI API key not configured. Set OPENAI_API_KEY environment "
+                    "variable or use PAPERVISOR_TEST_MODE=true for testing."
+                )
+            else:
+                # Use the newer OpenAI client API
+                client = openai.OpenAI()
+                prompt = (
+                    f"Based on the following abstract, decide if this paper should "
+                    f"be included in a literature review. Provide a single-word answer "
+                    f"(Yes or No) followed by a brief justification.\n\n"
+                    f"Abstract: {abstract}"
+                )
+
+                response = client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[{"role": "user", "content": prompt}],
+                    max_tokens=150,
+                )
+                content = response.choices[0].message.content.strip()
+
+                # Parse result
+                lines = content.split("\n", 1)
+                result = lines[0].strip()
+                justification = (
+                    lines[1].strip() if len(lines) > 1 else "No justification provided."
+                )
+
+        except Exception as e:
+            result = "error"
+            justification = f"Error during screening: {str(e)}"
+
+        # Save results
+        all_results = self._load_screening_results(project_path)
+        all_results[key] = {"result": result, "justification": justification}
+        self._save_screening_results(all_results, project_path)
+
+        print(f"Screened paper {key}: {result} - {justification[:100]}...")
+
+    def _screen_papers_background(
+        self, papers_list: List[Dict], project_path: Path
+    ) -> None:
+        """Background thread for screening multiple papers."""
+        for paper in papers_list:
+            try:
+                self._screen_paper(paper, project_path)
+            except Exception as e:
+                print(f"Error screening paper {paper['paper_id']}: {e}")

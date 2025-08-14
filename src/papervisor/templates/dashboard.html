@@ -10,7 +10,7 @@
                 <h1>📥 Download Management</h1>
                 <div>
                     <span class="badge badge-success">Step 2 of 2</span>
-                    <a href="{{ url_for('review_papers') }}" class="btn btn-outline-secondary btn-sm">
+                    <a href="{{ url_for('review_papers', project_id=project_id) }}" class="btn btn-outline-secondary btn-sm">
                         <i class="fas fa-arrow-left"></i> Back to Review
                     </a>
                 </div>
@@ -86,15 +86,16 @@
                             <thead class="thead-light">
                                 <tr>
                                     <th style="width: 50px;">ID</th>
-                                    <th style="width: 32%;">Title</th>
-                                    <th style="width: 15%;">Authors</th>
+                                    <th style="width: 18%;">Title</th>
+                                    <th style="width: 10%;">Authors</th>
                                     <th style="width: 60px;">Year</th>
                                     <th style="width: 80px;">Sources</th>
                                     <th style="width: 100px;">Duplicate Info</th>
                                     <th style="width: 120px;">Auto Download</th>
                                     <th style="width: 100px;">Available URLs</th>
-                                    <th style="width: 250px;">Manual Download</th>
-                                    <th style="width: 80px;">Manual Status</th>
+                                    <th style="width: 140px;">Manual Download URL</th>
+                                    <th style="width: 140px;">Manual Upload PDF</th>
+                                    <th style="width: 120px;">Manual Status</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -104,10 +105,14 @@
                                         <span class="badge badge-primary badge-sm">{{ paper.paper_id }}</span>
                                     </td>
                                     <td>
-                                        <strong class="text-primary">{{ paper.title }}</strong>
+                                        <strong class="text-primary" title="{{ paper.title }}">
+                                            {{ paper.title[:45] }}{% if paper.title|length > 45 %}...{% endif %}
+                                        </strong>
                                     </td>
                                     <td>
-                                        <small class="text-muted">{{ paper.authors }}</small>
+                                        <small class="text-muted" title="{{ paper.authors }}">
+                                            {{ paper.authors[:30] }}{% if paper.authors|length > 30 %}...{% endif %}
+                                        </small>
                                     </td>
                                     <td class="text-center">
                                         <span class="badge badge-info badge-sm">{{ paper.year }}</span>
@@ -146,7 +151,7 @@
                                         <div class="btn-group-vertical" role="group">
                                             {% if paper.is_downloaded %}
                                                 <!-- Downloaded PDF link -->
-                                                <a href="/pdfs/{{ paper.download_source }}/{{ paper.downloaded_file }}" target="_blank"
+                                                <a href="{{ url_for('serve_pdf', source=paper.download_source, filename=paper.downloaded_file, project_id=project_id) }}" target="_blank"
                                                    class="btn btn-xs btn-success mb-1" title="Downloaded PDF">
                                                     📄 PDF
                                                 </a>
@@ -166,27 +171,61 @@
                                     </td>
                                     <td>
                                         {% if not paper.is_downloaded %}
-                                            <form method="post" action="{{ url_for('submit_url') }}" class="d-flex">
+                                            <!-- URL Download Form -->
+                                            <form method="post" action="{{ url_for('submit_url', project_id=project_id) }}" class="url-download-form">
                                                 <input type="hidden" name="paper_id" value="{{ paper.paper_id }}">
-                                                <input type="url" name="url" placeholder="PDF URL..."
-                                                       class="form-control form-control-sm mr-1"
-                                                       style="font-size: 10px; min-width: 120px;" required>
-                                                <button type="submit" class="btn btn-success btn-sm px-2">📥</button>
+                                                <div class="input-group input-group-sm">
+                                                    <input type="url" name="url" placeholder="PDF URL"
+                                                           class="form-control" required>
+                                                    <div class="input-group-append">
+                                                        <button type="submit" class="btn btn-success btn-sm" title="Download from URL">
+                                                            🔗
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             </form>
                                         {% else %}
-                                            <small class="text-success">Already downloaded</small>
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if not paper.is_downloaded %}
+                                            <!-- File Upload Form -->
+                                            <form method="post" action="{{ url_for('project_upload_pdf', project_id=project_id) }}"
+                                                  enctype="multipart/form-data" class="file-upload-form">
+                                                <input type="hidden" name="paper_id" value="{{ paper.paper_id }}">
+                                                <div class="input-group input-group-sm">
+                                                    <input type="file" name="pdf_file" accept=".pdf"
+                                                           class="form-control" required>
+                                                    <div class="input-group-append">
+                                                        <button type="submit" class="btn btn-primary btn-sm" title="Upload PDF file">
+                                                            📁
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
                                         {% endif %}
                                     </td>
                                     <td class="text-center">
                                         {% if paper.is_downloaded and paper.download_source == 'manual' %}
-                                            <span class="badge badge-success">✅ Manual</span>
+                                            <span class="badge badge-success" title="Successfully uploaded manually">
+                                                <i class="fas fa-check-circle"></i> Success
+                                            </span>
                                             <br><small class="text-muted">{{ paper.downloaded_file }}</small>
                                         {% elif paper.get('manual_download_failed') %}
-                                            <span class="badge badge-danger">❌ Failed</span>
+                                            <span class="badge badge-danger" title="Manual download failed">
+                                                <i class="fas fa-times-circle"></i> Failed
+                                            </span>
                                         {% elif paper.is_downloaded %}
-                                            <small class="text-muted">-</small>
+                                            <span class="badge badge-secondary" title="Downloaded automatically - manual not needed">
+                                                <i class="fas fa-minus-circle"></i> N/A
+                                            </span>
                                         {% else %}
-                                            <span class="badge badge-secondary">⏳ Ready</span>
+                                            <span class="badge badge-warning" title="Ready for manual download">
+                                                <i class="fas fa-clock"></i> Ready
+                                            </span>
                                         {% endif %}
                                     </td>
                                 </tr>
@@ -194,6 +233,17 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+
+                <!-- Manual Status Legend -->
+                <div class="card-footer py-2">
+                    <small class="text-muted">
+                        <strong>Manual Status Legend:</strong>
+                        <span class="badge badge-success ml-2"><i class="fas fa-check-circle"></i> Success</span> - Successfully uploaded manually
+                        <span class="badge badge-danger ml-2"><i class="fas fa-times-circle"></i> Failed</span> - Manual download failed
+                        <span class="badge badge-warning ml-2"><i class="fas fa-clock"></i> Ready</span> - Ready for manual download
+                        <span class="badge badge-secondary ml-2"><i class="fas fa-minus-circle"></i> N/A</span> - Downloaded automatically
+                    </small>
                 </div>
             </div>
 
@@ -204,7 +254,7 @@
                     <p class="text-muted mb-3">
                         Process downloaded PDFs to extract structured text sections (abstract, literature review, methodology, etc.)
                     </p>
-                    <a href="{{ url_for('text_extraction') }}" class="btn btn-success btn-lg">
+                    <a href="{{ url_for('text_extraction') }}?project_id={{ project_id }}" class="btn btn-success btn-lg">
                         <i class="fas fa-file-text"></i> Proceed to Text Extraction
                     </a>
                 </div>
@@ -225,13 +275,50 @@
 {% block extra_scripts %}
 <script>
 // Form validation for manual downloads
-document.querySelectorAll('.manual-download-form').forEach(function(form) {
+document.querySelectorAll('form[action*="submit_url"]').forEach(function(form) {
     form.addEventListener('submit', function(e) {
         const urlInput = form.querySelector('input[name="url"]');
         if (urlInput && urlInput.value.trim() === '') {
             e.preventDefault();
             alert('Please enter a valid URL');
             urlInput.focus();
+        }
+    });
+});
+
+// Form validation for file uploads
+document.querySelectorAll('form[action*="upload_pdf"]').forEach(function(form) {
+    form.addEventListener('submit', function(e) {
+        const fileInput = form.querySelector('input[name="pdf_file"]');
+        if (fileInput && fileInput.files.length === 0) {
+            e.preventDefault();
+            alert('Please select a PDF file to upload');
+            fileInput.focus();
+            return;
+        }
+
+        // Check file size (limit to 50MB)
+        if (fileInput.files[0] && fileInput.files[0].size > 50 * 1024 * 1024) {
+            e.preventDefault();
+            alert('File size must be less than 50MB');
+            fileInput.value = '';
+            return;
+        }
+
+        // Show upload progress
+        const button = form.querySelector('button[type="submit"]');
+        button.disabled = true;
+        button.innerHTML = '⏳';
+        button.title = 'Uploading...';
+    });
+});
+
+// File input change handler to show selected file name
+document.querySelectorAll('input[type="file"]').forEach(function(input) {
+    input.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            const fileName = this.files[0].name;
+            this.title = `Selected: ${fileName}`;
         }
     });
 });
@@ -374,57 +461,223 @@ document.querySelectorAll('.btn-outline-primary').forEach(function(link) {
 .table td:nth-child(6),
 .table td:nth-child(7),
 .table td:nth-child(8),
-.table td:nth-child(10) {
+.table td:nth-child(11) {
     text-align: center;
 }
 
-/* Left align manual download form */
-.table td:nth-child(9) {
+/* Left align manual download form columns */
+.table td:nth-child(9),  /* Manual Download URL */
+.table td:nth-child(10) { /* Manual Upload PDF */
     text-align: left;
+    padding: 0.5rem 0.3rem;
+    vertical-align: middle;
 }
 
-/* Manual download controls - keep form and button on same line */
-.manual-download-form {
-    display: flex !important;
-    flex-wrap: nowrap;
-    align-items: center;
-    gap: 5px;
-    max-width: 250px;
+/* URL Download Form Styling */
+.url-download-form {
+    margin: 0;
     width: 100%;
+    max-width: 150px;
 }
 
-.manual-download-form input {
-    flex: 1;
-    min-width: 130px;
-    font-size: 0.75rem;
+.url-download-form .input-group {
+    width: 100%;
+    max-width: 150px;
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+.url-download-form .form-control {
     height: 28px;
     padding: 3px 6px;
+    font-size: 11px;
+    border-radius: 3px 0 0 3px;
+    flex: 1;
+    min-width: 80px;
+    max-width: 110px;
 }
 
-.manual-download-form button {
-    flex-shrink: 0;
-    padding: 3px 8px;
-    font-size: 0.7rem;
-    line-height: 1.2;
+.url-download-form .btn {
     height: 28px;
-    white-space: nowrap;
-    min-width: 35px;
+    padding: 3px 8px;
+    font-size: 12px;
+    line-height: 1;
+    border-radius: 0 3px 3px 0;
+    width: 40px;
+    flex-shrink: 0;
+}
+
+/* File Upload Form Styling */
+.file-upload-form {
+    margin: 0;
+    width: 100%;
+    max-width: 150px;
+}
+
+.file-upload-form .input-group {
+    width: 100%;
+    max-width: 150px;
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+.file-upload-form .form-control {
+    height: 28px;
+    padding: 2px 4px;
+    font-size: 10px;
+    border-radius: 3px 0 0 3px;
+    flex: 1;
+    min-width: 80px;
+    max-width: 110px;
+}
+
+.file-upload-form input[type="file"] {
+    font-size: 9px !important;
+    padding: 2px 4px !important;
+    height: 28px !important;
+}
+
+.file-upload-form .btn {
+    height: 28px;
+    padding: 3px 8px;
+    font-size: 12px;
+    line-height: 1;
+    border-radius: 0 3px 3px 0;
+    width: 40px;
+    flex-shrink: 0;
+}
+
+/* Ensure input groups don't wrap */
+.input-group-sm {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+}
+
+.input-group-append {
+    display: flex !important;
+    flex-shrink: 0 !important;
+}
+
+.input-group-append .btn {
+    margin-left: 0 !important;
+    border-left: 0 !important;
 }
 
 /* Ensure authors column text wraps properly */
 .table td:nth-child(3) {
     word-wrap: break-word;
     overflow-wrap: break-word;
-    line-height: 1.2;
-    max-width: 0; /* This forces text wrapping in fixed-width table */
+    line-height: 1.3;
+    max-width: 0;
+}
+
+/* Title column optimization */
+.table td:nth-child(2) {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.3;
+}
+
+/* Badge styling for manual status */
+.badge i {
+    margin-right: 3px;
+}
+
+/* Legend styling */
+.card-footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid rgba(0,0,0,.125);
+}
+
+.card-footer .badge {
+    font-size: 0.7em;
+    margin-left: 0.5rem;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 1200px) {
+    .table td:nth-child(9),
+    .table td:nth-child(10) {
+        width: 130px;
+        max-width: 130px;
+        min-width: 130px;
+    }
+
+    .url-download-form,
+    .file-upload-form {
+        max-width: 130px;
+    }
+
+    .url-download-form .input-group,
+    .file-upload-form .input-group {
+        max-width: 130px;
+    }
+
+    .url-download-form .form-control,
+    .file-upload-form .form-control {
+        max-width: 90px;
+        font-size: 10px;
+    }
+
+    .file-upload-form input[type="file"] {
+        font-size: 8px !important;
+    }
+
+    .url-download-form .btn,
+    .file-upload-form .btn {
+        width: 35px;
+        font-size: 11px;
+        padding: 2px 6px;
+    }
+}
+
+@media (max-width: 992px) {
+    .table td:nth-child(9),
+    .table td:nth-child(10) {
+        width: 120px;
+        max-width: 120px;
+        min-width: 120px;
+    }
+
+    .url-download-form,
+    .file-upload-form {
+        max-width: 120px;
+    }
+
+    .url-download-form .input-group,
+    .file-upload-form .input-group {
+        max-width: 120px;
+    }
+
+    .url-download-form .form-control,
+    .file-upload-form .form-control {
+        max-width: 80px;
+        font-size: 9px;
+    }
+
+    .file-upload-form input[type="file"] {
+        font-size: 7px !important;
+    }
+
+    .url-download-form .btn,
+    .file-upload-form .btn {
+        width: 30px;
+        font-size: 10px;
+        padding: 2px 4px;
+    }
+}
+
+/* Ensure no horizontal scrolling issues */
+.table-responsive {
+    overflow-x: auto;
+}
+
+.table-responsive .table {
+    margin-bottom: 0;
 }
 
 /* Horizontal layout for manual download */
-.d-flex.align-items-center {
-    gap: 0.5rem;
-    flex-wrap: nowrap;
-}
-
 .flex-grow-1 {
     flex-grow: 1;
 }
@@ -436,6 +689,33 @@ document.querySelectorAll('.btn-outline-primary').forEach(function(link) {
 /* Ensure consistent column widths across all tables */
 .table-responsive table {
     min-width: 100%;
+    table-layout: fixed;
+}
+
+/* Prevent table cell content from breaking layout */
+.table td {
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/* Allow text wrapping only in specific columns */
+.table td:nth-child(2), /* Title */
+.table td:nth-child(3)  /* Authors */
+{
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Ensure manual download columns have enough space */
+.table td:nth-child(9),  /* Manual Download URL */
+.table td:nth-child(10) { /* Manual Upload PDF */
+    width: 140px;
+    max-width: 140px;
+    min-width: 140px;
+    white-space: nowrap;
+    overflow: hidden;
+    padding: 0.3rem 0.2rem;
 }
 </style>
 
@@ -453,7 +733,7 @@ function startDownloadAll() {
     progress.style.display = 'block';
 
     // Start the download process
-    fetch('{{ url_for("download_all_missing") }}', {
+    fetch('{{ url_for("download_all_missing", project_id=project_id) }}', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',

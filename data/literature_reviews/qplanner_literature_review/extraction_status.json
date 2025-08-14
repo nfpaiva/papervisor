@@ -1,11 +1,137 @@
 {
-  "0": {
-    "status": "failed",
-    "sections": [],
-    "json_file": "",
-    "error": "'PapervisorWebServer' object has no attribute '_create_fallback_extraction_data'"
+  "2": {
+    "status": "success",
+    "sections": [
+      "abstract",
+      "scheduling"
+    ],
+    "json_file": "paper_2_extracted.json",
+    "extracted_at": "2025-08-11T21:08:03.736927",
+    "main_sections_found": [
+      "abstract"
+    ],
+    "additional_sections_found": [
+      "scheduling"
+    ],
+    "extraction_metadata": {
+      "text_length": 49854,
+      "total_pages": 11,
+      "raw_text_chars": 49854,
+      "section_text_chars": 49627,
+      "section_extraction_percentage": 99.5,
+      "word_count": 6033
+    }
   },
-  "4": {
+  "5": {
+    "status": "success",
+    "sections": [
+      "abstract"
+    ],
+    "json_file": "paper_5_extracted.json",
+    "extracted_at": "2025-08-11T21:08:05.912979",
+    "main_sections_found": [
+      "abstract"
+    ],
+    "additional_sections_found": [],
+    "extraction_metadata": {
+      "text_length": 66172,
+      "total_pages": 12,
+      "raw_text_chars": 66172,
+      "section_text_chars": 65463,
+      "section_extraction_percentage": 98.9,
+      "word_count": 9763
+    }
+  },
+  "6": {
+    "status": "success",
+    "sections": [
+      "abstract",
+      "introduction",
+      "methods",
+      "results",
+      "discussion",
+      "case_study"
+    ],
+    "json_file": "paper_6_extracted.json",
+    "extracted_at": "2025-08-11T21:08:09.361372",
+    "main_sections_found": [
+      "abstract",
+      "introduction",
+      "methods",
+      "results",
+      "discussion"
+    ],
+    "additional_sections_found": [
+      "case_study"
+    ],
+    "extraction_metadata": {
+      "text_length": 231050,
+      "total_pages": 119,
+      "raw_text_chars": 231050,
+      "section_text_chars": 229464,
+      "section_extraction_percentage": 99.3,
+      "word_count": 35725
+    }
+  },
+  "9": {
+    "status": "success",
+    "sections": [
+      "abstract",
+      "introduction",
+      "methods",
+      "conclusion",
+      "problem_definition",
+      "literature_review"
+    ],
+    "json_file": "paper_9_extracted.json",
+    "extracted_at": "2025-08-11T21:08:10.700537",
+    "main_sections_found": [
+      "abstract",
+      "introduction",
+      "methods",
+      "conclusion"
+    ],
+    "additional_sections_found": [
+      "problem_definition",
+      "literature_review"
+    ],
+    "extraction_metadata": {
+      "text_length": 138137,
+      "total_pages": 49,
+      "raw_text_chars": 138137,
+      "section_text_chars": 137413,
+      "section_extraction_percentage": 99.5,
+      "word_count": 9375
+    }
+  },
+  "21": {
+    "status": "success",
+    "sections": [
+      "abstract",
+      "introduction",
+      "methods",
+      "simulation"
+    ],
+    "json_file": "paper_21_extracted.json",
+    "extracted_at": "2025-08-11T21:08:11.266253",
+    "main_sections_found": [
+      "abstract",
+      "introduction",
+      "methods"
+    ],
+    "additional_sections_found": [
+      "simulation"
+    ],
+    "extraction_metadata": {
+      "text_length": 56216,
+      "total_pages": 14,
+      "raw_text_chars": 56216,
+      "section_text_chars": 55729,
+      "section_extraction_percentage": 99.1,
+      "word_count": 9114
+    }
+  },
+  "22": {
     "status": "success",
     "sections": [
       "abstract",
@@ -16,8 +142,8 @@
       "literature_review",
       "limitations"
     ],
-    "json_file": "paper_4_extracted.json",
-    "extracted_at": "2025-08-07T21:48:51.011408",
+    "json_file": "paper_22_extracted.json",
+    "extracted_at": "2025-08-11T21:08:11.763621",
     "main_sections_found": [
       "abstract",
       "introduction",
@@ -32,79 +158,46 @@
     "extraction_metadata": {
       "text_length": 60296,
       "total_pages": 19,
-      "word_count": 0
+      "raw_text_chars": 60296,
+      "section_text_chars": 59369,
+      "section_extraction_percentage": 98.5,
+      "word_count": 2228
     }
   },
-  "6": {
+  "23": {
     "status": "success",
     "sections": [
       "abstract",
       "introduction",
-      "forecasting"
-    ],
-    "json_file": "paper_6_extracted.json",
-    "extracted_at": "2025-08-07T21:48:51.870352",
-    "main_sections_found": [
-      "abstract",
-      "introduction"
-    ],
-    "additional_sections_found": [
-      "forecasting"
-    ],
-    "extraction_metadata": {
-      "text_length": 74220,
-      "total_pages": 26,
-      "word_count": 0
-    }
-  },
-  "9": {
-    "status": "success",
-    "sections": [
-      "abstract",
-      "introduction",
+      "methods",
+      "results",
       "discussion",
       "conclusion",
-      "optimization",
-      "scheduling"
+      "literature_review"
     ],
-    "json_file": "paper_9_extracted.json",
-    "extracted_at": "2025-08-07T21:48:53.231719",
+    "json_file": "paper_23_extracted.json",
+    "extracted_at": "2025-08-11T21:08:12.852113",
     "main_sections_found": [
       "abstract",
       "introduction",
+      "methods",
+      "results",
       "discussion",
       "conclusion"
     ],
     "additional_sections_found": [
-      "optimization",
-      "scheduling"
+      "literature_review"
     ],
     "extraction_metadata": {
-      "text_length": 155658,
-      "total_pages": 30,
-      "word_count": 0
+      "text_length": 145444,
+      "total_pages": 79,
+      "raw_text_chars": 145444,
+      "section_text_chars": 143570,
+      "section_extraction_percentage": 98.7,
+      "word_count": 19601
     }
   },
-  "13": {
-    "status": "success",
-    "sections": [
-      "abstract",
-      "discussion"
-    ],
-    "json_file": "paper_13_extracted.json",
-    "extracted_at": "2025-08-07T21:48:54.392425",
-    "main_sections_found": [
-      "abstract",
-      "discussion"
-    ],
-    "additional_sections_found": [],
-    "extraction_metadata": {
-      "text_length": 65606,
-      "total_pages": 17,
-      "word_count": 0
-    }
-  },
-  "14": {
+  "31": {
     "status": "success",
     "sections": [
       "abstract",
@@ -114,8 +207,8 @@
       "conclusion",
       "literature_review"
     ],
-    "json_file": "paper_14_extracted.json",
-    "extracted_at": "2025-08-07T21:48:55.031729",
+    "json_file": "paper_31_extracted.json",
+    "extracted_at": "2025-08-11T21:08:13.378526",
     "main_sections_found": [
       "abstract",
       "introduction",
@@ -127,12 +220,67 @@
       "literature_review"
     ],
     "extraction_metadata": {
-      "text_length": 40830,
+      "text_length": 40868,
       "total_pages": 8,
-      "word_count": 0
+      "raw_text_chars": 40868,
+      "section_text_chars": 40626,
+      "section_extraction_percentage": 99.4,
+      "word_count": 4052
     }
   },
-  "18": {
+  "39": {
+    "status": "success",
+    "sections": [
+      "abstract",
+      "methods",
+      "references"
+    ],
+    "json_file": "paper_39_extracted.json",
+    "extracted_at": "2025-08-11T21:08:16.143542",
+    "main_sections_found": [
+      "abstract",
+      "methods"
+    ],
+    "additional_sections_found": [
+      "references"
+    ],
+    "extraction_metadata": {
+      "text_length": 161295,
+      "total_pages": 109,
+      "raw_text_chars": 161295,
+      "section_text_chars": 160961,
+      "section_extraction_percentage": 99.8,
+      "word_count": 25714
+    }
+  },
+  "40": {
+    "status": "success",
+    "sections": [
+      "abstract",
+      "introduction",
+      "conclusion",
+      "forecasting"
+    ],
+    "json_file": "paper_40_extracted.json",
+    "extracted_at": "2025-08-11T21:08:16.516618",
+    "main_sections_found": [
+      "abstract",
+      "introduction",
+      "conclusion"
+    ],
+    "additional_sections_found": [
+      "forecasting"
+    ],
+    "extraction_metadata": {
+      "text_length": 54188,
+      "total_pages": 31,
+      "raw_text_chars": 54188,
+      "section_text_chars": 53460,
+      "section_extraction_percentage": 98.7,
+      "word_count": 8395
+    }
+  },
+  "43": {
     "status": "success",
     "sections": [
       "abstract",
@@ -142,8 +290,8 @@
       "literature_review",
       "modeling"
     ],
-    "json_file": "paper_18_extracted.json",
-    "extracted_at": "2025-08-07T21:48:56.882534",
+    "json_file": "paper_43_extracted.json",
+    "extracted_at": "2025-08-11T21:08:18.176890",
     "main_sections_found": [
       "abstract",
       "introduction",
@@ -157,10 +305,13 @@
     "extraction_metadata": {
       "text_length": 95562,
       "total_pages": 39,
-      "word_count": 0
+      "raw_text_chars": 95562,
+      "section_text_chars": 93976,
+      "section_extraction_percentage": 98.3,
+      "word_count": 12105
     }
   },
-  "25": {
+  "44": {
     "status": "success",
     "sections": [
       "abstract",
@@ -169,8 +320,8 @@
       "optimization",
       "experiments"
     ],
-    "json_file": "paper_25_extracted.json",
-    "extracted_at": "2025-08-07T21:48:57.893671",
+    "json_file": "paper_44_extracted.json",
+    "extracted_at": "2025-08-11T21:08:18.802351",
     "main_sections_found": [
       "abstract",
       "introduction",
@@ -181,168 +332,12 @@
       "experiments"
     ],
     "extraction_metadata": {
-      "text_length": 104125,
-      "total_pages": 28,
-      "word_count": 0
-    }
-  },
-  "35": {
-    "status": "success",
-    "sections": [
-      "abstract",
-      "results",
-      "modeling",
-      "literature_review"
-    ],
-    "json_file": "paper_35_extracted.json",
-    "extracted_at": "2025-08-07T21:48:59.174259",
-    "main_sections_found": [
-      "abstract",
-      "results"
-    ],
-    "additional_sections_found": [
-      "modeling",
-      "literature_review"
-    ],
-    "extraction_metadata": {
-      "text_length": 97033,
-      "total_pages": 39,
-      "word_count": 0
-    }
-  },
-  "36": {
-    "status": "failed",
-    "sections": [],
-    "json_file": "",
-    "error": "'PapervisorWebServer' object has no attribute '_create_fallback_extraction_data'"
-  },
-  "39": {
-    "status": "success",
-    "sections": [
-      "abstract",
-      "introduction",
-      "methods",
-      "simulation"
-    ],
-    "json_file": "paper_39_extracted.json",
-    "extracted_at": "2025-08-07T21:48:59.832761",
-    "main_sections_found": [
-      "abstract",
-      "introduction",
-      "methods"
-    ],
-    "additional_sections_found": [
-      "simulation"
-    ],
-    "extraction_metadata": {
-      "text_length": 56216,
-      "total_pages": 14,
-      "word_count": 0
-    }
-  },
-  "41": {
-    "status": "success",
-    "sections": [
-      "abstract",
-      "introduction",
-      "conclusion",
-      "optimization",
-      "experiments"
-    ],
-    "json_file": "paper_41_extracted.json",
-    "extracted_at": "2025-08-07T21:49:00.598883",
-    "main_sections_found": [
-      "abstract",
-      "introduction",
-      "conclusion"
-    ],
-    "additional_sections_found": [
-      "optimization",
-      "experiments"
-    ],
-    "extraction_metadata": {
-      "text_length": 91886,
+      "text_length": 91898,
       "total_pages": 24,
-      "word_count": 0
-    }
-  },
-  "43": {
-    "status": "success",
-    "sections": [
-      "abstract",
-      "introduction",
-      "methods",
-      "results",
-      "discussion",
-      "conclusion",
-      "literature_review"
-    ],
-    "json_file": "paper_43_extracted.json",
-    "extracted_at": "2025-08-07T21:49:01.921252",
-    "main_sections_found": [
-      "abstract",
-      "introduction",
-      "methods",
-      "results",
-      "discussion",
-      "conclusion"
-    ],
-    "additional_sections_found": [
-      "literature_review"
-    ],
-    "extraction_metadata": {
-      "text_length": 145397,
-      "total_pages": 79,
-      "word_count": 0
-    }
-  },
-  "48": {
-    "status": "success",
-    "sections": [
-      "abstract",
-      "introduction",
-      "methods",
-      "results",
-      "discussion",
-      "case_study"
-    ],
-    "json_file": "paper_48_extracted.json",
-    "extracted_at": "2025-08-07T21:49:06.178232",
-    "main_sections_found": [
-      "abstract",
-      "introduction",
-      "methods",
-      "results",
-      "discussion"
-    ],
-    "additional_sections_found": [
-      "case_study"
-    ],
-    "extraction_metadata": {
-      "text_length": 230990,
-      "total_pages": 119,
-      "word_count": 0
-    }
-  },
-  "51": {
-    "status": "success",
-    "sections": [
-      "abstract",
-      "introduction",
-      "discussion"
-    ],
-    "json_file": "paper_51_extracted.json",
-    "extracted_at": "2025-08-07T21:49:09.141214",
-    "main_sections_found": [
-      "abstract",
-      "introduction",
-      "discussion"
-    ],
-    "additional_sections_found": [],
-    "extraction_metadata": {
-      "text_length": 197645,
-      "total_pages": 102,
-      "word_count": 0
+      "raw_text_chars": 91898,
+      "section_text_chars": 91784,
+      "section_extraction_percentage": 99.9,
+      "word_count": 9623
     }
   },
   "52": {
@@ -350,12 +345,72 @@
     "sections": [
       "abstract",
       "introduction",
+      "conclusion",
+      "scheduling"
+    ],
+    "json_file": "paper_52_extracted.json",
+    "extracted_at": "2025-08-11T21:08:22.304406",
+    "main_sections_found": [
+      "abstract",
+      "introduction",
+      "conclusion"
+    ],
+    "additional_sections_found": [
+      "scheduling"
+    ],
+    "extraction_metadata": {
+      "text_length": 334438,
+      "total_pages": 179,
+      "raw_text_chars": 334438,
+      "section_text_chars": 333708,
+      "section_extraction_percentage": 99.8,
+      "word_count": 54108
+    }
+  },
+  "58": {
+    "status": "success",
+    "sections": [
+      "abstract",
+      "introduction",
+      "methods",
+      "results",
+      "conclusion",
+      "experiments",
+      "future_work"
+    ],
+    "json_file": "paper_58_extracted.json",
+    "extracted_at": "2025-08-11T21:08:22.625210",
+    "main_sections_found": [
+      "abstract",
+      "introduction",
+      "methods",
+      "results",
+      "conclusion"
+    ],
+    "additional_sections_found": [
+      "experiments",
+      "future_work"
+    ],
+    "extraction_metadata": {
+      "text_length": 37876,
+      "total_pages": 10,
+      "raw_text_chars": 37876,
+      "section_text_chars": 36804,
+      "section_extraction_percentage": 97.2,
+      "word_count": 4349
+    }
+  },
+  "59": {
+    "status": "success",
+    "sections": [
+      "abstract",
+      "introduction",
       "results",
       "conclusion",
       "literature_review"
     ],
-    "json_file": "paper_52_extracted.json",
-    "extracted_at": "2025-08-07T21:49:09.458822",
+    "json_file": "paper_59_extracted.json",
+    "extracted_at": "2025-08-11T21:08:22.884731",
     "main_sections_found": [
       "abstract",
       "introduction",
@@ -368,145 +423,195 @@
     "extraction_metadata": {
       "text_length": 26402,
       "total_pages": 11,
-      "word_count": 0
+      "raw_text_chars": 26402,
+      "section_text_chars": 25562,
+      "section_extraction_percentage": 96.8,
+      "word_count": 1797
     }
   },
-  "57": {
+  "66": {
     "status": "success",
     "sections": [
       "abstract",
-      "introduction",
       "methods",
       "results",
-      "conclusion",
-      "experiments",
-      "future_work"
+      "modeling",
+      "literature_review"
     ],
-    "json_file": "paper_57_extracted.json",
-    "extracted_at": "2025-08-07T21:49:09.782566",
+    "json_file": "paper_66_extracted.json",
+    "extracted_at": "2025-08-11T21:08:23.976137",
     "main_sections_found": [
       "abstract",
-      "introduction",
       "methods",
-      "results",
-      "conclusion"
-    ],
-    "additional_sections_found": [
-      "experiments",
-      "future_work"
-    ],
-    "extraction_metadata": {
-      "text_length": 37837,
-      "total_pages": 10,
-      "word_count": 0
-    }
-  },
-  "63": {
-    "status": "success",
-    "sections": [
-      "abstract",
-      "introduction",
-      "conclusion",
-      "forecasting"
-    ],
-    "json_file": "paper_63_extracted.json",
-    "extracted_at": "2025-08-07T21:49:10.255675",
-    "main_sections_found": [
-      "abstract",
-      "introduction",
-      "conclusion"
-    ],
-    "additional_sections_found": [
-      "forecasting"
-    ],
-    "extraction_metadata": {
-      "text_length": 54182,
-      "total_pages": 31,
-      "word_count": 0
-    }
-  },
-  "65": {
-    "status": "success",
-    "sections": [
-      "abstract",
-      "introduction",
-      "conclusion"
-    ],
-    "json_file": "paper_65_extracted.json",
-    "extracted_at": "2025-08-07T21:49:10.833369",
-    "main_sections_found": [
-      "abstract",
-      "introduction",
-      "conclusion"
-    ],
-    "additional_sections_found": [],
-    "extraction_metadata": {
-      "text_length": 39473,
-      "total_pages": 10,
-      "word_count": 0
-    }
-  },
-  "70": {
-    "status": "success",
-    "sections": [
-      "abstract",
-      "introduction",
-      "conclusion",
-      "validation"
-    ],
-    "json_file": "paper_70_extracted.json",
-    "extracted_at": "2025-08-07T21:49:11.673505",
-    "main_sections_found": [
-      "abstract",
-      "introduction",
-      "conclusion"
-    ],
-    "additional_sections_found": [
-      "validation"
-    ],
-    "extraction_metadata": {
-      "text_length": 49919,
-      "total_pages": 12,
-      "word_count": 0
-    }
-  },
-  "72": {
-    "status": "success",
-    "sections": [
-      "abstract",
-      "results",
-      "optimization"
-    ],
-    "json_file": "paper_72_extracted.json",
-    "extracted_at": "2025-08-07T21:49:12.473798",
-    "main_sections_found": [
-      "abstract",
       "results"
     ],
     "additional_sections_found": [
-      "optimization"
+      "modeling",
+      "literature_review"
     ],
     "extraction_metadata": {
-      "text_length": 24811,
-      "total_pages": 15,
-      "word_count": 0
+      "text_length": 97033,
+      "total_pages": 39,
+      "raw_text_chars": 97033,
+      "section_text_chars": 95274,
+      "section_extraction_percentage": 98.2,
+      "word_count": 12614
     }
   },
-  "75": {
+  "67": {
     "status": "success",
     "sections": [
-      "abstract"
+      "abstract",
+      "discussion",
+      "text_chunk_1",
+      "text_chunk_2",
+      "text_chunk_3",
+      "text_chunk_4",
+      "text_chunk_5",
+      "text_chunk_6",
+      "text_chunk_7",
+      "text_chunk_8",
+      "text_chunk_9",
+      "text_chunk_10",
+      "text_chunk_11",
+      "text_chunk_12",
+      "text_chunk_13",
+      "text_chunk_14",
+      "text_chunk_15",
+      "text_chunk_16",
+      "text_chunk_17",
+      "text_chunk_18",
+      "text_chunk_19",
+      "text_chunk_20",
+      "text_chunk_21",
+      "text_chunk_22",
+      "text_chunk_23",
+      "text_chunk_24",
+      "text_chunk_25",
+      "text_chunk_26",
+      "text_chunk_27",
+      "text_chunk_28",
+      "text_chunk_29",
+      "text_chunk_30",
+      "text_chunk_31",
+      "text_chunk_32",
+      "text_chunk_33",
+      "text_chunk_34",
+      "text_chunk_35",
+      "text_chunk_36",
+      "text_chunk_37",
+      "text_chunk_38",
+      "text_chunk_39",
+      "text_chunk_40",
+      "text_chunk_41"
     ],
-    "json_file": "paper_75_extracted.json",
-    "extracted_at": "2025-08-07T21:49:12.900752",
+    "json_file": "paper_67_extracted.json",
+    "extracted_at": "2025-08-11T21:08:24.917825",
     "main_sections_found": [
-      "abstract"
+      "abstract",
+      "discussion"
+    ],
+    "additional_sections_found": [
+      "text_chunk_1",
+      "text_chunk_2",
+      "text_chunk_3",
+      "text_chunk_4",
+      "text_chunk_5",
+      "text_chunk_6",
+      "text_chunk_7",
+      "text_chunk_8",
+      "text_chunk_9",
+      "text_chunk_10",
+      "text_chunk_11",
+      "text_chunk_12",
+      "text_chunk_13",
+      "text_chunk_14",
+      "text_chunk_15",
+      "text_chunk_16",
+      "text_chunk_17",
+      "text_chunk_18",
+      "text_chunk_19",
+      "text_chunk_20",
+      "text_chunk_21",
+      "text_chunk_22",
+      "text_chunk_23",
+      "text_chunk_24",
+      "text_chunk_25",
+      "text_chunk_26",
+      "text_chunk_27",
+      "text_chunk_28",
+      "text_chunk_29",
+      "text_chunk_30",
+      "text_chunk_31",
+      "text_chunk_32",
+      "text_chunk_33",
+      "text_chunk_34",
+      "text_chunk_35",
+      "text_chunk_36",
+      "text_chunk_37",
+      "text_chunk_38",
+      "text_chunk_39",
+      "text_chunk_40",
+      "text_chunk_41"
+    ],
+    "extraction_metadata": {
+      "text_length": 65606,
+      "total_pages": 17,
+      "raw_text_chars": 65606,
+      "section_text_chars": 109076,
+      "section_extraction_percentage": 166.3,
+      "word_count": 4163
+    }
+  },
+  "68": {
+    "status": "success",
+    "sections": [
+      "abstract",
+      "introduction",
+      "discussion"
+    ],
+    "json_file": "paper_68_extracted.json",
+    "extracted_at": "2025-08-11T21:08:27.410147",
+    "main_sections_found": [
+      "abstract",
+      "introduction",
+      "discussion"
     ],
     "additional_sections_found": [],
     "extraction_metadata": {
-      "text_length": 49845,
-      "total_pages": 11,
-      "word_count": 0
+      "text_length": 197807,
+      "total_pages": 102,
+      "raw_text_chars": 197807,
+      "section_text_chars": 195590,
+      "section_extraction_percentage": 98.9,
+      "word_count": 29788
+    }
+  },
+  "71": {
+    "status": "success",
+    "sections": [
+      "abstract",
+      "introduction",
+      "conclusion",
+      "validation"
+    ],
+    "json_file": "paper_71_extracted.json",
+    "extracted_at": "2025-08-11T21:08:28.077350",
+    "main_sections_found": [
+      "abstract",
+      "introduction",
+      "conclusion"
+    ],
+    "additional_sections_found": [
+      "validation"
+    ],
+    "extraction_metadata": {
+      "text_length": 49973,
+      "total_pages": 12,
+      "raw_text_chars": 49973,
+      "section_text_chars": 49461,
+      "section_extraction_percentage": 99.0,
+      "word_count": 4946
     }
   },
   "78": {
@@ -514,27 +619,49 @@
     "sections": [
       "abstract",
       "introduction",
-      "methods",
-      "conclusion",
-      "problem_definition",
-      "literature_review"
+      "conclusion"
     ],
     "json_file": "paper_78_extracted.json",
-    "extracted_at": "2025-08-07T21:49:14.512601",
+    "extracted_at": "2025-08-11T21:08:28.700535",
+    "main_sections_found": [
+      "abstract",
+      "introduction",
+      "conclusion"
+    ],
+    "additional_sections_found": [],
+    "extraction_metadata": {
+      "text_length": 80877,
+      "total_pages": 31,
+      "raw_text_chars": 80877,
+      "section_text_chars": 80208,
+      "section_extraction_percentage": 99.2,
+      "word_count": 12876
+    }
+  },
+  "79": {
+    "status": "success",
+    "sections": [
+      "abstract",
+      "introduction",
+      "methods",
+      "conclusion"
+    ],
+    "json_file": "paper_79_extracted.json",
+    "extracted_at": "2025-08-11T21:08:29.354812",
     "main_sections_found": [
       "abstract",
       "introduction",
       "methods",
       "conclusion"
     ],
-    "additional_sections_found": [
-      "problem_definition",
-      "literature_review"
-    ],
+    "additional_sections_found": [],
     "extraction_metadata": {
-      "text_length": 138137,
-      "total_pages": 49,
-      "word_count": 0
+      "text_length": 73580,
+      "total_pages": 32,
+      "raw_text_chars": 73580,
+      "section_text_chars": 73404,
+      "section_extraction_percentage": 99.8,
+      "word_count": 11638
     }
   },
   "80": {
@@ -542,23 +669,510 @@
     "sections": [
       "abstract",
       "introduction",
-      "conclusion",
-      "scheduling"
+      "results",
+      "discussion"
     ],
     "json_file": "paper_80_extracted.json",
-    "extracted_at": "2025-08-07T21:49:18.383911",
+    "extracted_at": "2025-08-11T21:08:29.757062",
+    "main_sections_found": [
+      "abstract",
+      "introduction",
+      "results",
+      "discussion"
+    ],
+    "additional_sections_found": [],
+    "extraction_metadata": {
+      "text_length": 23066,
+      "total_pages": 6,
+      "raw_text_chars": 23066,
+      "section_text_chars": 22875,
+      "section_extraction_percentage": 99.2,
+      "word_count": 3095
+    }
+  },
+  "82": {
+    "status": "success",
+    "sections": [
+      "abstract"
+    ],
+    "json_file": "paper_82_extracted.json",
+    "extracted_at": "2025-08-11T21:08:30.755828",
+    "main_sections_found": [
+      "abstract"
+    ],
+    "additional_sections_found": [],
+    "extraction_metadata": {
+      "text_length": 121956,
+      "total_pages": 89,
+      "raw_text_chars": 121956,
+      "section_text_chars": 121030,
+      "section_extraction_percentage": 99.2,
+      "word_count": 20860
+    }
+  },
+  "85": {
+    "status": "success",
+    "sections": [
+      "abstract",
+      "introduction",
+      "conclusion",
+      "optimization"
+    ],
+    "json_file": "paper_85_extracted.json",
+    "extracted_at": "2025-08-11T21:08:31.722578",
     "main_sections_found": [
       "abstract",
       "introduction",
       "conclusion"
     ],
     "additional_sections_found": [
+      "optimization"
+    ],
+    "extraction_metadata": {
+      "text_length": 45020,
+      "total_pages": 13,
+      "raw_text_chars": 45020,
+      "section_text_chars": 44312,
+      "section_extraction_percentage": 98.4,
+      "word_count": 5262
+    }
+  },
+  "89": {
+    "status": "success",
+    "sections": [
+      "abstract",
+      "introduction",
+      "results",
+      "conclusion",
+      "acknowledgments"
+    ],
+    "json_file": "paper_89_extracted.json",
+    "extracted_at": "2025-08-11T21:08:34.875469",
+    "main_sections_found": [
+      "abstract",
+      "introduction",
+      "results",
+      "conclusion"
+    ],
+    "additional_sections_found": [
+      "acknowledgments"
+    ],
+    "extraction_metadata": {
+      "text_length": 183151,
+      "total_pages": 138,
+      "raw_text_chars": 183151,
+      "section_text_chars": 182212,
+      "section_extraction_percentage": 99.5,
+      "word_count": 11344
+    }
+  },
+  "107": {
+    "status": "success",
+    "sections": [
+      "abstract",
+      "introduction",
+      "implementation"
+    ],
+    "json_file": "paper_107_extracted.json",
+    "extracted_at": "2025-08-11T21:08:35.293061",
+    "main_sections_found": [
+      "abstract",
+      "introduction"
+    ],
+    "additional_sections_found": [
+      "implementation"
+    ],
+    "extraction_metadata": {
+      "text_length": 26882,
+      "total_pages": 7,
+      "raw_text_chars": 26882,
+      "section_text_chars": 26629,
+      "section_extraction_percentage": 99.1,
+      "word_count": 4100
+    }
+  },
+  "109": {
+    "status": "success",
+    "sections": [
+      "abstract",
+      "introduction",
+      "implementation"
+    ],
+    "json_file": "paper_109_extracted.json",
+    "extracted_at": "2025-08-11T21:08:35.856357",
+    "main_sections_found": [
+      "abstract",
+      "introduction"
+    ],
+    "additional_sections_found": [
+      "implementation"
+    ],
+    "extraction_metadata": {
+      "text_length": 51878,
+      "total_pages": 16,
+      "raw_text_chars": 51878,
+      "section_text_chars": 50784,
+      "section_extraction_percentage": 97.9,
+      "word_count": 7141
+    }
+  },
+  "110": {
+    "status": "success",
+    "sections": [
+      "abstract",
+      "methods"
+    ],
+    "json_file": "paper_110_extracted.json",
+    "extracted_at": "2025-08-11T21:08:36.736815",
+    "main_sections_found": [
+      "abstract",
+      "methods"
+    ],
+    "additional_sections_found": [],
+    "extraction_metadata": {
+      "text_length": 146518,
+      "total_pages": 88,
+      "raw_text_chars": 146518,
+      "section_text_chars": 146306,
+      "section_extraction_percentage": 99.9,
+      "word_count": 24937
+    }
+  },
+  "122": {
+    "status": "success",
+    "sections": [
+      "results"
+    ],
+    "json_file": "paper_122_extracted.json",
+    "extracted_at": "2025-08-11T21:08:37.141759",
+    "main_sections_found": [
+      "results"
+    ],
+    "additional_sections_found": [],
+    "extraction_metadata": {
+      "text_length": 41646,
+      "total_pages": 9,
+      "raw_text_chars": 41646,
+      "section_text_chars": 36468,
+      "section_extraction_percentage": 87.6,
+      "word_count": 5553
+    }
+  },
+  "130": {
+    "status": "success",
+    "sections": [
+      "abstract",
+      "introduction",
+      "results",
+      "discussion",
+      "conclusion",
+      "literature_review"
+    ],
+    "json_file": "paper_130_extracted.json",
+    "extracted_at": "2025-08-11T21:08:37.578859",
+    "main_sections_found": [
+      "abstract",
+      "introduction",
+      "results",
+      "discussion",
+      "conclusion"
+    ],
+    "additional_sections_found": [
+      "literature_review"
+    ],
+    "extraction_metadata": {
+      "text_length": 60282,
+      "total_pages": 10,
+      "raw_text_chars": 60282,
+      "section_text_chars": 60090,
+      "section_extraction_percentage": 99.7,
+      "word_count": 5235
+    }
+  },
+  "131": {
+    "status": "success",
+    "sections": [
+      "abstract",
+      "introduction",
+      "discussion"
+    ],
+    "json_file": "paper_131_extracted.json",
+    "extracted_at": "2025-08-11T21:08:37.738780",
+    "main_sections_found": [
+      "abstract",
+      "introduction",
+      "discussion"
+    ],
+    "additional_sections_found": [],
+    "extraction_metadata": {
+      "text_length": 14406,
+      "total_pages": 3,
+      "raw_text_chars": 14406,
+      "section_text_chars": 14005,
+      "section_extraction_percentage": 97.2,
+      "word_count": 2036
+    }
+  },
+  "142": {
+    "status": "success",
+    "sections": [
+      "abstract",
+      "introduction",
+      "conclusion",
+      "literature_review",
+      "implementation",
+      "acknowledgments",
+      "references"
+    ],
+    "json_file": "paper_142_extracted.json",
+    "extracted_at": "2025-08-11T21:08:37.955498",
+    "main_sections_found": [
+      "abstract",
+      "introduction",
+      "conclusion"
+    ],
+    "additional_sections_found": [
+      "literature_review",
+      "implementation",
+      "acknowledgments",
+      "references"
+    ],
+    "extraction_metadata": {
+      "text_length": 21681,
+      "total_pages": 5,
+      "raw_text_chars": 21681,
+      "section_text_chars": 20497,
+      "section_extraction_percentage": 94.5,
+      "word_count": 1088
+    }
+  },
+  "155": {
+    "status": "success",
+    "sections": [
+      "abstract",
+      "conclusion",
+      "optimization",
+      "implementation",
+      "future_work"
+    ],
+    "json_file": "paper_155_extracted.json",
+    "extracted_at": "2025-08-11T21:08:38.417427",
+    "main_sections_found": [
+      "abstract",
+      "conclusion"
+    ],
+    "additional_sections_found": [
+      "optimization",
+      "implementation",
+      "future_work"
+    ],
+    "extraction_metadata": {
+      "text_length": 44457,
+      "total_pages": 11,
+      "raw_text_chars": 44457,
+      "section_text_chars": 43678,
+      "section_extraction_percentage": 98.2,
+      "word_count": 3687
+    }
+  },
+  "156": {
+    "status": "success",
+    "sections": [
+      "abstract",
+      "introduction",
+      "methods",
+      "optimization"
+    ],
+    "json_file": "paper_156_extracted.json",
+    "extracted_at": "2025-08-11T21:08:38.865907",
+    "main_sections_found": [
+      "abstract",
+      "introduction",
+      "methods"
+    ],
+    "additional_sections_found": [
+      "optimization"
+    ],
+    "extraction_metadata": {
+      "text_length": 52426,
+      "total_pages": 13,
+      "raw_text_chars": 52426,
+      "section_text_chars": 51688,
+      "section_extraction_percentage": 98.6,
+      "word_count": 5995
+    }
+  },
+  "164": {
+    "status": "success",
+    "sections": [
+      "abstract",
+      "introduction",
+      "results"
+    ],
+    "json_file": "paper_164_extracted.json",
+    "extracted_at": "2025-08-11T21:08:39.463922",
+    "main_sections_found": [
+      "abstract",
+      "introduction",
+      "results"
+    ],
+    "additional_sections_found": [],
+    "extraction_metadata": {
+      "text_length": 85483,
+      "total_pages": 57,
+      "raw_text_chars": 85483,
+      "section_text_chars": 81527,
+      "section_extraction_percentage": 95.4,
+      "word_count": 11205
+    }
+  },
+  "165": {
+    "status": "success",
+    "sections": [
+      "abstract",
+      "case_study",
+      "scheduling"
+    ],
+    "json_file": "paper_165_extracted.json",
+    "extracted_at": "2025-08-11T21:08:43.445388",
+    "main_sections_found": [
+      "abstract"
+    ],
+    "additional_sections_found": [
+      "case_study",
       "scheduling"
     ],
     "extraction_metadata": {
-      "text_length": 335323,
-      "total_pages": 180,
-      "word_count": 0
+      "text_length": 196674,
+      "total_pages": 52,
+      "raw_text_chars": 196674,
+      "section_text_chars": 196166,
+      "section_extraction_percentage": 99.7,
+      "word_count": 26456
+    }
+  },
+  "172": {
+    "status": "success",
+    "sections": [
+      "abstract"
+    ],
+    "json_file": "paper_172_extracted.json",
+    "extracted_at": "2025-08-11T21:08:43.810395",
+    "main_sections_found": [
+      "abstract"
+    ],
+    "additional_sections_found": [],
+    "extraction_metadata": {
+      "text_length": 30009,
+      "total_pages": 7,
+      "raw_text_chars": 30009,
+      "section_text_chars": 29280,
+      "section_extraction_percentage": 97.6,
+      "word_count": 3760
+    }
+  },
+  "174": {
+    "status": "success",
+    "sections": [
+      "abstract",
+      "introduction",
+      "methods",
+      "conclusion",
+      "literature_review",
+      "experiments"
+    ],
+    "json_file": "paper_174_extracted.json",
+    "extracted_at": "2025-08-11T21:08:44.030767",
+    "main_sections_found": [
+      "abstract",
+      "introduction",
+      "methods",
+      "conclusion"
+    ],
+    "additional_sections_found": [
+      "literature_review",
+      "experiments"
+    ],
+    "extraction_metadata": {
+      "text_length": 36512,
+      "total_pages": 9,
+      "raw_text_chars": 36512,
+      "section_text_chars": 36375,
+      "section_extraction_percentage": 99.6,
+      "word_count": 2556
+    }
+  },
+  "176": {
+    "status": "success",
+    "sections": [
+      "abstract",
+      "methods",
+      "discussion",
+      "conclusion",
+      "literature_review"
+    ],
+    "json_file": "paper_176_extracted.json",
+    "extracted_at": "2025-08-11T21:08:44.576119",
+    "main_sections_found": [
+      "abstract",
+      "methods",
+      "discussion",
+      "conclusion"
+    ],
+    "additional_sections_found": [
+      "literature_review"
+    ],
+    "extraction_metadata": {
+      "text_length": 41674,
+      "total_pages": 10,
+      "raw_text_chars": 41674,
+      "section_text_chars": 41119,
+      "section_extraction_percentage": 98.7,
+      "word_count": 6029
+    }
+  },
+  "177": {
+    "status": "success",
+    "sections": [
+      "abstract"
+    ],
+    "json_file": "paper_177_extracted.json",
+    "extracted_at": "2025-08-11T21:08:44.962486",
+    "main_sections_found": [
+      "abstract"
+    ],
+    "additional_sections_found": [],
+    "extraction_metadata": {
+      "text_length": 50939,
+      "total_pages": 8,
+      "raw_text_chars": 50939,
+      "section_text_chars": 50394,
+      "section_extraction_percentage": 98.9,
+      "word_count": 7522
+    }
+  },
+  "180": {
+    "status": "success",
+    "sections": [
+      "abstract",
+      "introduction",
+      "discussion"
+    ],
+    "json_file": "paper_180_extracted.json",
+    "extracted_at": "2025-08-11T21:08:45.922551",
+    "main_sections_found": [
+      "abstract",
+      "introduction",
+      "discussion"
+    ],
+    "additional_sections_found": [],
+    "extraction_metadata": {
+      "text_length": 117611,
+      "total_pages": 84,
+      "raw_text_chars": 117611,
+      "section_text_chars": 117220,
+      "section_extraction_percentage": 99.7,
+      "word_count": 21884
     }
   }
 }

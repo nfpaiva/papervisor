@@ -118,3 +118,47 @@ search_queries:
       only_review_articles: "NO"
     results_file: "q7.csv"
     notes: "Search covering experimental designs such as switchback or time-randomized trials for evaluating real-time decision systems in live environments"
+
+  - id: "q8"
+    topic: "Call Center Optimization with AI"
+    query: '("call center" OR "contact center") AND ("artificial intelligence" OR "machine learning" OR "AI") AND ("optimization" OR "decision support" OR "resource allocation" OR "scheduling" OR "routing")'
+    executed_date: "2025-08-09"
+    extractor: "Publish or Perish"
+    extractor_version: "8.0"
+    databases: ["Google Scholar"]
+    filters:
+      language: "English"
+      patents: "NO"
+      maximum_results: 20
+      include_citations: "Y"
+      only_review_articles: "NO"
+    results_file: "q8.csv"
+    notes: "Broad search on AI-based optimization approaches for contact centers, covering multiple operational challenges to frame QPlanner in a wider context."
+
+  - id: "q9"
+    topic: "Call Centers, AI, and AI Act Compliance"
+    query: '("call center" OR "contact center") AND ("artificial intelligence" OR "AI") AND ("regulation" OR "AI Act" OR "ethics" OR "compliance" OR "GDPR" OR "transparency")'
+    executed_date: "2025-08-09"
+    extractor: "Publish or Perish"
+    extractor_version: "8.0"
+    databases: ["Google Scholar"]
+    filters:
+      language: "English"
+      patents: "NO"
+      maximum_results: 20
+      include_citations: "Y"
+      only_review_articles: "NO"
+    results_file: "q9.csv"
+    notes: "Literature on regulatory and ethical considerations for AI in call centers, linking QPlanner to compliance with the EU AI Act and related guidelines."
+
+  - id: "q10"
+    topic: "Multi-objective Optimization in Call Centers"
+    query: '("call center" OR "contact center") AND ("multi-objective optimization" OR "multi objective" OR "multi-criteria optimization") AND ("waiting time" OR "churn" OR "customer retention" OR "fairness")'
+    executed_date: "2025-08-09"
+    extractor: "Publish or Perish"
+    extractor_version: "8.0"
+    databases: ["Google Scholar"]
+    filters:
+      language: "English"
+      patents: "NO"
+      maximum_results: 20
