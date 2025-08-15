@@ -17,7 +17,8 @@ def test_pdf_downloader_initialization() -> None:
         # Check that directories are created
         assert (project_path / "pdfs" / "automatic").exists()
         assert (project_path / "pdfs" / "manual").exists()
-        assert (project_path / "pdfs" / "reports").exists()
+        # Updated to match code: reports is under automatic
+        assert (project_path / "pdfs" / "automatic" / "reports").exists()
 
         # Ensure downloader is initialized properly
         assert downloader.project_path == project_path

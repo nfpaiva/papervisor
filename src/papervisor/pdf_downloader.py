@@ -736,10 +736,17 @@ class PDFDownloader:
 
     def _extract_arxiv_id(self, url: str, doi: str) -> Optional[str]:
         """Extract arXiv ID from URL or DOI."""
-        # This is a simplified extraction - you might want to make it more robust
-
         text = f"{url} {doi}".lower()
+        # Match arXiv:2301.12345, /abs/2301.12345, /pdf/2301.12345, arxiv.org/2301.12345
         match = re.search(r"arxiv[:/](\d+\.\d+)", text)
+        if match:
+            return match.group(1)
+        match = re.search(
+            r"arxiv\.org/(?:abs|pdf)/([0-9]{4}\.[0-9]{5}|[0-9]{4}\.[0-9]{4,5})", text
+        )
+        if match:
+            return match.group(1)
+        match = re.search(r"arxiv[: ]([0-9]{4}\.[0-9]{4,5})", text)
         if match:
             return match.group(1)
         return None
