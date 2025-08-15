@@ -38,7 +38,7 @@ jobs:
 
     - name: Test with pytest
       run: pytest tests/ -v
-      continue-on-error: true
+      continue-on-error: false
 
     - name: Xenon complexity gate
       run: xenon --max-absolute C --max-modules B --max-average A --exclude src/papervisor/pdf_downloader.py,src/papervisor/cli.py,src/papervisor/web_server.py src/papervisor

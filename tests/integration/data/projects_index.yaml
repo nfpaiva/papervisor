@@ -1,0 +1,13 @@
+projects:
+  - project_id: test_project
+    title: Test Project
+    description: Test integration project
+    created_date: "2025-01-01"
+    status: active
+    lead_researcher: Test
+    project_path: literature_reviews/test_project
+    search_queries_file: "literature_reviews/test_project/search_queries.yaml"
+    results_directory: "literature_reviews/test_project/results"
+    analysis_directory: "literature_reviews/test_project/analysis"
+    total_queries: 2
+    tags: ["integration", "test"]

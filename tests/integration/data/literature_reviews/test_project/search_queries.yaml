@@ -1,0 +1,19 @@
+search_queries:
+  - id: query1
+    query: "test query 1"
+    topic: "integration test"
+    executed_date: "2025-01-01"
+    extractor: "test_extractor"
+    extractor_version: "1.0"
+    databases: ["testdb"]
+    filters: {}
+    results_file: "query1.csv"
+  - id: query2
+    query: "test query 2"
+    topic: "integration test"
+    executed_date: "2025-01-01"
+    extractor: "test_extractor"
+    extractor_version: "1.0"
+    databases: ["testdb"]
+    filters: {}
+    results_file: "query2.csv"
