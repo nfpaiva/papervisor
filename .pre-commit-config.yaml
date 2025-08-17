@@ -48,13 +48,23 @@ repos:
       - id: ruff
         args: [--no-fix]  # Only lint, do not format
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.17.1
+  # Use a local mypy hook to ensure pre-commit uses the same environment and dependencies as local and CI runs.
+  # The remote mirrors-mypy hook creates an isolated environment and may miss errors or not match your actual setup.
+  - repo: local
     hooks:
-      - id: mypy
-        additional_dependencies: [types-requests, types-urllib3, types-PyYAML]
-        args: [src/papervisor, --ignore-missing-imports]
+      - id: mypy-local
+        name: mypy (local)
+        entry: mypy src/papervisor --ignore-missing-imports
+        language: system
         pass_filenames: false
+  # - repo: https://github.com/pre-commit/mirrors-mypy
+  #   rev: v1.17.1
+  #   hooks:
+  #     - id: mypy
+  #       additional_dependencies: [types-requests, types-urllib3, types-PyYAML]
+  #       args: [src/papervisor, --ignore-missing-imports]
+  #       pass_filenames: false
+  #       language_version: python3.12
 
   - repo: local
     hooks:
