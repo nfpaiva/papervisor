@@ -53,7 +53,7 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies: [types-requests, types-urllib3, types-PyYAML]
-        args: [--ignore-missing-imports, --no-strict-optional, --no-warn-unreachable]
+        args: [src/papervisor, --ignore-missing-imports]
 
   - repo: local
     hooks:
