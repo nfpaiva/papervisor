@@ -1,4 +1,4 @@
-"""Unit tests for PDF downloader functionality."""
+"""Test PDF downloader functionality."""
 
 from pathlib import Path
 import tempfile
@@ -14,9 +14,10 @@ def test_pdf_downloader_initialization() -> None:
 
         downloader = PDFDownloader(project_path)
 
-        # Check that directories are created - reports is now under automatic/
+        # Check that directories are created
         assert (project_path / "pdfs" / "automatic").exists()
         assert (project_path / "pdfs" / "manual").exists()
+        # Updated to match code: reports is under automatic
         assert (project_path / "pdfs" / "automatic" / "reports").exists()
 
         # Ensure downloader is initialized properly
@@ -46,6 +47,46 @@ def test_filename_generation() -> None:
         assert filename == "789_Unknown_Unknown.pdf"
 
 
+def test_download_urls_generation() -> None:
+    """Test download URL generation."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        project_path = Path(temp_dir) / "test_project"
+        project_path.mkdir()
+
+        downloader = PDFDownloader(project_path)
+
+        # Test with DOI
+        urls = downloader._get_download_urls("10.1000/test", "", "", "")
+        assert any("https://doi.org/10.1000/test" in url for _, url in urls)
+
+        # Test with arXiv URL
+        urls = downloader._get_download_urls(
+            "", "https://arxiv.org/abs/2301.12345", "", ""
+        )
+        arxiv_urls = [url for source, url in urls if "arxiv.org/pdf" in url]
+        assert len(arxiv_urls) > 0
+        assert "2301.12345.pdf" in arxiv_urls[0]
+
+
+def test_arxiv_id_extraction() -> None:
+    """Test arXiv ID extraction."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        project_path = Path(temp_dir) / "test_project"
+        project_path.mkdir()
+
+        downloader = PDFDownloader(project_path)
+
+        # Test various arXiv URL formats
+        arxiv_id = downloader._extract_arxiv_id("https://arxiv.org/abs/2301.12345", "")
+        assert arxiv_id == "2301.12345"
+
+        arxiv_id = downloader._extract_arxiv_id("", "arXiv:2301.12345")
+        assert arxiv_id == "2301.12345"
+
+        arxiv_id = downloader._extract_arxiv_id("no arxiv here", "")
+        assert arxiv_id is None
+
+
 def test_download_result_serialization() -> None:
     """Test download result serialization."""
     from papervisor.pdf_downloader import PaperDownloadResult
@@ -70,56 +111,11 @@ def test_download_result_serialization() -> None:
     assert "timestamp" in result_dict
 
 
-# These tests need to be updated to check actual implementation
-def test_download_urls_generation() -> None:
-    """Test download URL generation - updated to match actual implementation."""
-    with tempfile.TemporaryDirectory() as temp_dir:
-        project_path = Path(temp_dir) / "test_project"
-        project_path.mkdir()
-
-        downloader = PDFDownloader(project_path)
-
-        # Test with DOI
-        urls = downloader._get_download_urls("10.1000/test", "", "", "")
-        assert isinstance(urls, list)  # Should return a list of URLs
-
-        # Test with arXiv URL - check if any arXiv URLs are generated
-        urls = downloader._get_download_urls(
-            "", "https://arxiv.org/abs/2301.12345", "", ""
-        )
-        assert isinstance(urls, list)
-
-
-def test_arxiv_id_extraction() -> None:
-    """Test arXiv ID extraction."""
-    with tempfile.TemporaryDirectory() as temp_dir:
-        project_path = Path(temp_dir) / "test_project"
-        project_path.mkdir()
-
-        downloader = PDFDownloader(project_path)
-
-        # Test arXiv URL format that matches the actual regex pattern
-        # The pattern looks for "arxiv[:/](\d+\.\d+)"
-        arxiv_id = downloader._extract_arxiv_id("arxiv:2301.12345", "")
-        assert arxiv_id == "2301.12345"
-
-        arxiv_id = downloader._extract_arxiv_id("", "arXiv:2301.12345")
-        assert arxiv_id == "2301.12345"
-
-        # Test URL with abs format - the regex might not catch this format
-        # Let's test what it actually does
-        arxiv_id = downloader._extract_arxiv_id("https://arxiv.org/abs/2301.12345", "")
-        # This might return None based on the current regex - that's OK for now
-
-        arxiv_id = downloader._extract_arxiv_id("no arxiv here", "")
-        assert arxiv_id is None
-
-
 if __name__ == "__main__":
     # Run basic tests
     test_pdf_downloader_initialization()
     test_filename_generation()
-    test_download_result_serialization()
     test_download_urls_generation()
     test_arxiv_id_extraction()
-    print("All PDF downloader unit tests passed!")
+    test_download_result_serialization()
+    print("All PDF downloader tests passed!")

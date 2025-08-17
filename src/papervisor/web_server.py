@@ -19,6 +19,7 @@ from flask import (
     flash,
     send_from_directory,
     Response as FlaskResponse,
+    make_response,  # <-- add this import
 )
 from werkzeug.wrappers import Response as WerkzeugResponse
 
@@ -96,7 +97,7 @@ class PapervisorWebServer:
             """Main landing page - show projects list or redirect to single project."""
             if self.project_id:
                 # Single project mode - redirect to review page
-                return redirect(url_for("review_papers"))
+                return redirect(url_for("review_papers", project_id=self.project_id))
             else:
                 # Multi-project mode - show landing page
                 return redirect(url_for("landing_page"))
@@ -260,13 +261,18 @@ class PapervisorWebServer:
                 # Use provided project_id or fallback to instance project_id
                 current_project_id = project_id or self.project_id
                 if not current_project_id:
-                    return render_template("error.html", error="No project specified")
+                    return make_response(
+                        render_template("error.html", error="No project specified")
+                    )
 
                 # Get the project
                 current_project = self.papervisor.get_project(current_project_id)
                 if not current_project:
-                    return render_template(
-                        "error.html", error=f"Project '{current_project_id}' not found"
+                    return make_response(
+                        render_template(
+                            "error.html",
+                            error=f"Project '{current_project_id}' not found",
+                        )
                     )
 
                 # Get project path
@@ -275,12 +281,14 @@ class PapervisorWebServer:
                 # Load consolidated papers data
                 consolidated_path = project_path / "pdfs" / "consolidated_papers.csv"
                 if not consolidated_path.exists():
-                    return render_template(
-                        "error.html",
-                        error=(
-                            "No consolidated papers file found. "
-                            "Please run the consolidation process first."
-                        ),
+                    return make_response(
+                        render_template(
+                            "error.html",
+                            error=(
+                                "No consolidated papers file found. "
+                                "Please run the consolidation process first."
+                            ),
+                        )
                     )
 
                 papers_df = pd.read_csv(consolidated_path)
@@ -1070,9 +1078,9 @@ class PapervisorWebServer:
                         paper_dict["section_text_chars"] = extraction_metadata.get(
                             "section_text_chars", 0
                         )
-                        paper_dict[
-                            "section_extraction_percentage"
-                        ] = extraction_metadata.get("section_extraction_percentage", 0)
+                        paper_dict["section_extraction_percentage"] = (
+                            extraction_metadata.get("section_extraction_percentage", 0)
+                        )
 
                         # If we don't have quality metrics, try to load from JSON file
                         if paper_dict["text_length"] == 0 and paper_dict["json_file"]:
@@ -1099,10 +1107,10 @@ class PapervisorWebServer:
                                         paper_dict["section_text_chars"] = metadata.get(
                                             "section_text_chars", 0
                                         )
-                                        paper_dict[
-                                            "section_extraction_percentage"
-                                        ] = metadata.get(
-                                            "section_extraction_percentage", 0
+                                        paper_dict["section_extraction_percentage"] = (
+                                            metadata.get(
+                                                "section_extraction_percentage", 0
+                                            )
                                         )
 
                                         # Calculate word count from sections
@@ -1698,20 +1706,26 @@ class PapervisorWebServer:
             # Determine which project
             current_project_id = project_id or self.project_id
             if not current_project_id:
-                return render_template("error.html", error="No project specified")
+                return make_response(
+                    render_template("error.html", error="No project specified")
+                )
             # Get the project
             project = self.papervisor.get_project(current_project_id)
             if not project:
-                return render_template(
-                    "error.html", error=f"Project '{current_project_id}' not found"
+                return make_response(
+                    render_template(
+                        "error.html", error=f"Project '{current_project_id}' not found"
+                    )
                 )
             project_path = self.data_dir / project.project_path
             # Load consolidated data
             consolidated_path = project_path / "pdfs" / "consolidated_papers.csv"
             if not consolidated_path.exists():
-                return render_template(
-                    "error.html",
-                    error="No consolidated papers found. Please run download first.",
+                return make_response(
+                    render_template(
+                        "error.html",
+                        error="No consolidated papers found. Please run download first.",
+                    )
                 )
             papers_df = pd.read_csv(consolidated_path)
             # Load extraction & screening statuses
@@ -1735,13 +1749,15 @@ class PapervisorWebServer:
             total = len(papers_to_screen)
             done = len([p for p in papers_to_screen if p["result"] != "pending"])
             pending = total - done
-            return render_template(
-                "screening.html",
-                project_id=current_project_id,
-                papers=papers_to_screen,
-                total=total,
-                processed=done,
-                pending=pending,
+            return make_response(
+                render_template(
+                    "screening.html",
+                    project_id=current_project_id,
+                    papers=papers_to_screen,
+                    total=total,
+                    processed=done,
+                    pending=pending,
+                )
             )
 
         @self.app.route("/project/<project_id>/start_screening", methods=["POST"])
@@ -2586,8 +2602,8 @@ class PapervisorWebServer:
                 for pattern in patterns:
                     if re.search(pattern, line_clean, re.IGNORECASE):
                         # Verify this looks like a section header
-                        if self._is_section_header(
-                            line.strip()
+                        if (
+                            self._is_section_header(line.strip())
                         ) or self._is_likely_header(line.strip()):
                             if (
                                 section_name not in section_starts
@@ -2979,9 +2995,9 @@ class PapervisorWebServer:
                 # Get project and validate
                 current_project = self.papervisor.get_project(project_id)
                 if not current_project:
-                    self._download_progress[
-                        project_id
-                    ].error_message = f"Project '{project_id}' not found"
+                    self._download_progress[project_id].error_message = (
+                        f"Project '{project_id}' not found"
+                    )
                     self._download_progress[project_id].is_running = False
                     return
 
@@ -2989,9 +3005,9 @@ class PapervisorWebServer:
                 consolidated_path = project_path / "pdfs" / "consolidated_papers.csv"
 
                 if not consolidated_path.exists():
-                    self._download_progress[
-                        project_id
-                    ].error_message = "No consolidated papers file found"
+                    self._download_progress[project_id].error_message = (
+                        "No consolidated papers file found"
+                    )
                     self._download_progress[project_id].is_running = False
                     return
 
@@ -3035,9 +3051,9 @@ class PapervisorWebServer:
                 )
 
                 if not papers_to_download:
-                    self._download_progress[
-                        project_id
-                    ].error_message = "No papers to download"
+                    self._download_progress[project_id].error_message = (
+                        "No papers to download"
+                    )
                     self._download_progress[project_id].is_running = False
                     return
 
@@ -3291,13 +3307,19 @@ class PapervisorWebServer:
                     messages=[{"role": "user", "content": prompt}],
                     max_tokens=150,
                 )
-                content = response.choices[0].message.content.strip()
+                content = response.choices[0].message.content
+                if content is not None:
+                    content = content.strip()
+                else:
+                    content = ""
 
                 # Parse result
                 lines = content.split("\n", 1)
-                result = lines[0].strip()
+                result = lines[0].strip() if lines[0] is not None else ""
                 justification = (
-                    lines[1].strip() if len(lines) > 1 else "No justification provided."
+                    lines[1].strip()
+                    if len(lines) > 1 and lines[1] is not None
+                    else "No justification provided."
                 )
 
         except Exception as e:
@@ -3320,3 +3342,9 @@ class PapervisorWebServer:
                 self._screen_paper(paper, project_path)
             except Exception as e:
                 print(f"Error screening paper {paper['paper_id']}: {e}")
+
+
+def create_app(project_id: Optional[str] = None, data_dir: str = "data") -> Flask:
+    """Factory to create and return a Flask app instance for Papervisor web server."""
+    server = PapervisorWebServer(project_id=project_id, data_dir=data_dir)
+    return server.app

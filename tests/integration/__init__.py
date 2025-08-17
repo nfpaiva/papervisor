@@ -1,1 +1,1 @@
-"""Integration tests for papervisor workflows."""
+# This file marks the integration test directory as a Python package.
