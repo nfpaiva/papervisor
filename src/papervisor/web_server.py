@@ -1070,9 +1070,9 @@ class PapervisorWebServer:
                         paper_dict["section_text_chars"] = extraction_metadata.get(
                             "section_text_chars", 0
                         )
-                        paper_dict[
-                            "section_extraction_percentage"
-                        ] = extraction_metadata.get("section_extraction_percentage", 0)
+                        paper_dict["section_extraction_percentage"] = (
+                            extraction_metadata.get("section_extraction_percentage", 0)
+                        )
 
                         # If we don't have quality metrics, try to load from JSON file
                         if paper_dict["text_length"] == 0 and paper_dict["json_file"]:
@@ -1099,10 +1099,10 @@ class PapervisorWebServer:
                                         paper_dict["section_text_chars"] = metadata.get(
                                             "section_text_chars", 0
                                         )
-                                        paper_dict[
-                                            "section_extraction_percentage"
-                                        ] = metadata.get(
-                                            "section_extraction_percentage", 0
+                                        paper_dict["section_extraction_percentage"] = (
+                                            metadata.get(
+                                                "section_extraction_percentage", 0
+                                            )
                                         )
 
                                         # Calculate word count from sections
@@ -2979,9 +2979,9 @@ class PapervisorWebServer:
                 # Get project and validate
                 current_project = self.papervisor.get_project(project_id)
                 if not current_project:
-                    self._download_progress[
-                        project_id
-                    ].error_message = f"Project '{project_id}' not found"
+                    self._download_progress[project_id].error_message = (
+                        f"Project '{project_id}' not found"
+                    )
                     self._download_progress[project_id].is_running = False
                     return
 
@@ -2989,9 +2989,9 @@ class PapervisorWebServer:
                 consolidated_path = project_path / "pdfs" / "consolidated_papers.csv"
 
                 if not consolidated_path.exists():
-                    self._download_progress[
-                        project_id
-                    ].error_message = "No consolidated papers file found"
+                    self._download_progress[project_id].error_message = (
+                        "No consolidated papers file found"
+                    )
                     self._download_progress[project_id].is_running = False
                     return
 
@@ -3035,9 +3035,9 @@ class PapervisorWebServer:
                 )
 
                 if not papers_to_download:
-                    self._download_progress[
-                        project_id
-                    ].error_message = "No papers to download"
+                    self._download_progress[project_id].error_message = (
+                        "No papers to download"
+                    )
                     self._download_progress[project_id].is_running = False
                     return
 
