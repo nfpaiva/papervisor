@@ -103,3 +103,17 @@ jobs:
       - name: Radon maintainability/complexity summary
         run: |
           radon mi src/papervisor -j | python3 -c "import sys, json; d=json.load(sys.stdin); mis=[v['mi'] for v in d.values()]; grades=[v['rank'] for v in d.values()]; avg_rank=chr(round(sum(map(ord,grades))/len(grades))); avg_score=sum(mis)/len(mis) if mis else 0; print(f'Codebase average: {avg_rank} ({avg_score:.2f})'); [print(f'{k} - {v['rank']} ({v['mi']:.1f})') for k,v in d.items()]"
+
+  ci-checks-python-3-12:
+    name: ci-checks-(Python 3.12)
+    runs-on: ubuntu-latest
+    needs:
+      - lint
+      - format
+      - typecheck
+      - test
+      - xenon
+      - radon
+    steps:
+      - name: All checks succeeded
+        run: echo "All required checks passed!"
