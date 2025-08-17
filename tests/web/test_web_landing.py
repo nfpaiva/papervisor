@@ -2,6 +2,7 @@
 Tests for the multi-project landing page ('/')
 Issue: https://github.com/nfpaiva/papervisor/issues/2
 """
+
 import pytest
 from flask.testing import FlaskClient
 from pathlib import Path
