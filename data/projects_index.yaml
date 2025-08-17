@@ -9,5 +9,18 @@ projects:
     search_queries_file: "literature_reviews/qplanner_literature_review/search_queries.yaml"
     results_directory: "literature_reviews/qplanner_literature_review/results"
     analysis_directory: "literature_reviews/qplanner_literature_review/analysis"
-    total_queries: 5
+    total_queries: 10
     tags: ["call_center", "machine_learning", "optimization", "agent_assignment"]
+
+  - project_id: "demo_contact_center_ai"
+    title: "AI in Contact Centers - Demo Project"
+    description: "Demonstration project showcasing Papervisor capabilities with real academic literature on AI applications in contact centers. Includes duplicate detection examples and end-to-end workflow demonstration."
+    created_date: "2025-08-12"
+    status: "demo"
+    lead_researcher: "Papervisor Demo"
+    project_path: "literature_reviews/demo_contact_center_ai"
+    search_queries_file: "literature_reviews/demo_contact_center_ai/search_queries.yaml"
+    results_directory: "literature_reviews/demo_contact_center_ai/results"
+    analysis_directory: "literature_reviews/demo_contact_center_ai/analysis"
+    total_queries: 2
+    tags: ["demo", "ai", "contact-centers", "machine-learning", "testing"]

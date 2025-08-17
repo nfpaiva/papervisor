@@ -1,0 +1,40 @@
+project_info:
+  project_id: "demo_contact_center_ai"
+  title: "AI in Contact Centers - Demo Project"
+  description: "Demonstration project showcasing Papervisor capabilities with real academic literature on AI applications in contact centers. Includes duplicate detection examples and end-to-end workflow demonstration."
+  created_date: "2025-08-12"
+  status: "demo"
+  lead_researcher: "Papervisor Demo"
+
+search_queries:
+  - id: "q1"
+    topic: "Real-Time Decision Systems in Contact Centers"
+    query: '"real-time decision making" AND ("machine learning" OR "optimization") AND ("call center" OR "contact center")'
+    executed_date: "2025-08-12"
+    extractor: "Publish or Perish"
+    extractor_version: "8.0"
+    databases: ["Google Scholar"]
+    filters:
+      language: "English"
+      patents: "NO"
+      maximum_results: 18
+      include_citations: "Y"
+      only_review_articles: "NO"
+    results_file: "q1.csv"
+    notes: "Primary demo query focusing on real-time operational decision-making systems using machine learning or optimization in call center environments. Designed for demonstration and testing purposes."
+
+  - id: "q2"
+    topic: "Call Center Optimization with AI"
+    query: '("call center" OR "contact center") AND ("artificial intelligence" OR "machine learning" OR "AI") AND ("optimization" OR "decision support" OR "resource allocation" OR "scheduling" OR "routing")'
+    executed_date: "2025-08-12"
+    extractor: "Publish or Perish"
+    extractor_version: "8.0"
+    databases: ["Google Scholar"]
+    filters:
+      language: "English"
+      patents: "NO"
+      maximum_results: 17
+      include_citations: "Y"
+      only_review_articles: "NO"
+    results_file: "q2.csv"
+    notes: "Secondary demo query on AI-based optimization approaches for contact centers, covering multiple operational challenges. Includes intentional duplicates with q1 for testing deduplication algorithms."

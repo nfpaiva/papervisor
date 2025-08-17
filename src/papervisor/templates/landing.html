@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+
+{% block title %}Papervisor - Literature Review Projects{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container">
+        <h1><i class="icon">📚</i> Papervisor</h1>
+        <p class="lead">Literature Review Project Management</p>
+    </div>
+</div>
+
+<div class="container main-content">
+    {% if projects %}
+    <div class="projects-overview">
+        <h2>Literature Review Projects</h2>
+        <p class="text-muted">{{ projects|length }} project(s) found</p>
+
+        {% for project in projects %}
+        <div class="project-card">
+            <div class="project-header">
+                <h3>{{ project.title }}</h3>
+                <div class="project-meta">
+                    <span class="badge status-{{ project.status|lower }}">{{ project.status }}</span>
+                    <span class="text-muted">Lead: {{ project.lead_researcher }}</span>
+                    <span class="text-muted">Created: {{ project.created_date }}</span>
+                </div>
+            </div>
+
+            <p class="project-description">{{ project.description }}</p>
+
+            <div class="project-stats">
+                <div class="stat-item">
+                    <strong>{{ project.total_queries }}</strong>
+                    <span>queries</span>
+                </div>
+                <div class="stat-item">
+                    <strong>{{ project_stats[project.project_id].total_papers }}</strong>
+                    <span>papers</span>
+                </div>
+                <div class="stat-item">
+                    <strong>{{ project_stats[project.project_id].downloaded_papers }}</strong>
+                    <span>downloaded</span>
+                </div>
+            </div>
+
+            <div class="queries-section">
+                <h4>Search Queries</h4>
+                {% if project_queries[project.project_id] %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Query ID</th>
+                                <th>Topic</th>
+                                <th>Search Query</th>
+                                <th>Results</th>
+                                <th>Executed</th>
+                                <th>Extractor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for query in project_queries[project.project_id] %}
+                            <tr>
+                                <td><code>{{ query.id }}</code></td>
+                                <td>{{ query.topic }}</td>
+                                <td class="query-text">{{ query.query[:80] }}{% if query.query|length > 80 %}...{% endif %}</td>
+                                <td>
+                                    {% if query_stats[project.project_id][query.id] %}
+                                        <span class="badge badge-info">{{ query_stats[project.project_id][query.id].paper_count }} papers</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">No results</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ query.executed_date }}</td>
+                                <td>{{ query.extractor }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No search queries found for this project.</p>
+                {% endif %}
+            </div>
+
+            <div class="project-actions">
+                {% if project_stats[project.project_id].has_consolidated %}
+                <div class="consolidated-info">
+                    <span class="badge badge-success">✓ Consolidated</span>
+                    <span class="text-muted">{{ project_stats[project.project_id].consolidated_date }}</span>
+                </div>
+                <a href="{{ url_for('review_papers', project_id=project.project_id) }}"
+                   class="btn btn-info">
+                    <i class="icon">🔍</i> Review & Clean Duplicates
+                </a>
+                <a href="{{ url_for('project_dashboard', project_id=project.project_id) }}"
+                   class="btn btn-primary">
+                    <i class="icon">📊</i> Open Dashboard
+                </a>
+                <a href="{{ url_for('download_management', project_id=project.project_id) }}"
+                   class="btn btn-secondary">
+                    <i class="icon">⬇️</i> Download Management
+                </a>
+                {% else %}
+                <form method="post" action="{{ url_for('consolidate_project') }}" style="display: inline;">
+                    <input type="hidden" name="project_id" value="{{ project.project_id }}">
+                    <button type="submit" class="btn btn-warning">
+                        <i class="icon">🔄</i> Consolidate Queries
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📂</div>
+        <h3>No Projects Found</h3>
+        <p>No literature review projects were found in the data directory.</p>
+        <p class="text-muted">Make sure your projects are properly configured in the projects_index.yaml file.</p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.hero-section {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: var(--white);
+    padding: 3rem 0;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.hero-section h1 {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+}
+
+.hero-section .lead {
+    font-size: 1.3rem;
+    opacity: 0.9;
+}
+
+.projects-overview h2 {
+    margin-bottom: 0.5rem;
+}
+
+.project-card {
+    background: var(--white);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-left: 4px solid var(--secondary-color);
+}
+
+.project-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.project-header h3 {
+    margin: 0;
+    color: var(--primary-color);
+}
+
+.project-meta {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.project-description {
+    color: var(--text-light);
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.project-stats {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: var(--light-bg);
+    border-radius: 6px;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-item strong {
+    display: block;
+    font-size: 1.5rem;
+    color: var(--primary-color);
+}
+
+.stat-item span {
+    font-size: 0.9rem;
+    color: var(--text-light);
+}
+
+.queries-section {
+    margin-bottom: 1.5rem;
+}
+
+.queries-section h4 {
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+}
+
+.query-text {
+    font-family: monospace;
+    font-size: 0.9rem;
+    max-width: 300px;
+}
+
+.project-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.consolidated-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-active {
+    background-color: var(--success-color);
+}
+
+.status-planning {
+    background-color: var(--warning-color);
+}
+
+.status-completed {
+    background-color: var(--primary-color);
+}
+
+.status-on-hold {
+    background-color: var(--text-light);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-light);
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.icon {
+    margin-right: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .project-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .project-stats {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .project-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .project-actions .btn {
+        text-align: center;
+    }
+}
+</style>
+{% endblock %}

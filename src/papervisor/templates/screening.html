@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Screening - {{ project_id }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12 d-flex justify-content-between align-items-center mb-3">
+      <h1>📝 Screening - {{ project_id }}</h1>
+      <div>
+        <span class="badge badge-info">Step 4 of 4</span>
+        <a href="{{ url_for('text_extraction', project_id=project_id) }}" class="btn btn-outline-secondary btn-sm">
+          <i class="fas fa-arrow-left"></i> Back to Extraction
+        </a>
+      </div>
+    </div>
+  </div>
+  <!-- KPI Cards -->
+  <div class="card mb-3">
+    <div class="card-body py-3">
+      <div class="alert alert-info mb-3">
+        <strong>ℹ️ Test Mode Active:</strong> Using simulated AI screening (no API key required).
+        To use real GPT screening, set <code>OPENAI_API_KEY</code> environment variable and
+        <code>PAPERVISOR_TEST_MODE=false</code>.
+      </div>
+      <div class="kpi-container">
+        <div class="kpi-item">
+          <div class="kpi-square bg-primary text-white">
+            <span class="kpi-number">{{ total }}</span>
+            <span class="kpi-label">Papers to Screen</span>
+          </div>
+        </div>
+        <div class="kpi-item">
+          <div class="kpi-square bg-success text-white">
+            <span class="kpi-number">{{ processed }}</span>
+            <span class="kpi-label">Processed</span>
+          </div>
+        </div>
+        <div class="kpi-item">
+          <div class="kpi-square bg-warning text-white">
+            <span class="kpi-number">{{ pending }}</span>
+            <span class="kpi-label">Pending</span>
+          </div>
+        </div>
+        <div class="kpi-item">
+          <button id="startScreenBtn" class="btn btn-primary kpi-button" onclick="startScreening()">
+            <i class="fas fa-robot"></i><br><small>Start Screening</small>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Screening Table -->
+  <div class="card">
+    <div class="card-header py-2">
+      <h6 class="mb-0">🧐 Screening Results</h6>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0 table-fixed">
+          <thead class="thead-light">
+            <tr>
+              <th style="width: 50px;">ID</th>
+              <th>Title</th>
+              <th style="width: 120px;">Result</th>
+              <th>Justification</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in papers %}
+            <tr>
+              <td class="text-center"><span class="badge badge-primary badge-sm">{{ p.paper_id }}</span></td>
+              <td><strong>{{ p.title }}</strong></td>
+              <td class="text-center">
+                {% if p.screening_result == 'Yes' %}
+                  <span class="badge badge-success">✅ Yes</span>
+                {% elif p.screening_result == 'No' %}
+                  <span class="badge badge-danger">❌ No</span>
+                {% elif p.screening_result == 'pending' %}
+                  <span class="badge badge-secondary">⏳ Pending</span>
+                {% else %}
+                  <span class="badge badge-warning">❗ {{ p.screening_result }}</span>
+                {% endif %}
+              </td>
+              <td style="max-width:400px;white-space:normal;">{{ p.justification or '-' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function startScreening() {
+    if (!confirm('Start GPT-based screening for all included papers?')) return;
+    const btn = document.getElementById('startScreenBtn');
+    btn.disabled = true;
+    fetch(`{{ url_for('start_screening') }}?project_id={{ project_id }}`, { method: 'POST' })
+      .then(res => {
+        if (res.ok) {
+          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><br><small>Screening...</small>';
+          setTimeout(() => window.location.reload(), 5000);
+        } else {
+          alert('Failed to start screening');
+          btn.disabled = false;
+        }
+      })
+      .catch(err => { console.error(err); alert('Error starting screening'); btn.disabled = false; });
+}
+</script>
+
+<style>
+/* Reuse KPI styles from text_extraction.html */
+.kpi-container { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.kpi-item { flex: 1; display: flex; justify-content: center; }
+.kpi-square { display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 15px 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); height: 80px; width: 100%; text-align: center; max-width: 150px; }
+.kpi-button { height: 80px; width: 100%; max-width: 150px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 0.8rem; }
+.table-fixed { table-layout: fixed; width: 100%; }
+.table-fixed th, .table-fixed td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.table-fixed td:nth-child(2) { white-space: normal; word-wrap: break-word; }
+</style>
+{% endblock %}
