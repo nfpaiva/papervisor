@@ -32,6 +32,18 @@ pip install .[dev]
 - For best results, use a virtual environment (e.g., `python -m venv .venv && source .venv/bin/activate`).
 - See the [CI/CD section](#continuous-integration--code-quality) for details on running tests and code quality checks.
 
+### 🚦 Launch the Web Server
+
+After installing, you can launch the Papervisor web server with:
+
+```bash
+./launch_server_simple.sh
+```
+
+This script checks your Python version and starts the web dashboard. By default, the server will be available at:
+- http://127.0.0.1:5000 (local only)
+- http://0.0.0.0:5000 (network, if allowed by your firewall)
+
 ## Continuous Integration & Code Quality
 
 Papervisor uses a robust CI/CD pipeline and pre-commit hooks to ensure code quality, security, and maintainability. The following tools and checks are enforced both locally and in CI:
