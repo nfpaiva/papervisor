@@ -293,3 +293,23 @@
 2025-08-12 14:06:32,160 - INFO - Reports directory exists: True
 2025-08-12 14:06:32,160 - INFO - Reports directory writable: True
 2025-08-12 14:06:32,160 - INFO - PDFDownloader initialization completed successfully.
+2025-08-19 12:42:15,449 - INFO - === PDF Downloader Logger Initialized ===
+2025-08-19 12:42:15,449 - INFO - Log file path: data/literature_reviews/demo_contact_center_ai/pdfs/automatic/reports/download_log.txt
+2025-08-19 12:42:15,449 - INFO - Reports directory exists: True
+2025-08-19 12:42:15,449 - INFO - Reports directory writable: True
+2025-08-19 12:42:15,450 - INFO - PDFDownloader initialization completed successfully.
+2025-08-19 12:44:20,910 - INFO - === PDF Downloader Logger Initialized ===
+2025-08-19 12:44:20,910 - INFO - Log file path: data/literature_reviews/demo_contact_center_ai/pdfs/automatic/reports/download_log.txt
+2025-08-19 12:44:20,910 - INFO - Reports directory exists: True
+2025-08-19 12:44:20,910 - INFO - Reports directory writable: True
+2025-08-19 12:44:20,910 - INFO - PDFDownloader initialization completed successfully.
+2025-08-19 12:44:25,143 - INFO - === PDF Downloader Logger Initialized ===
+2025-08-19 12:44:25,144 - INFO - Log file path: data/literature_reviews/demo_contact_center_ai/pdfs/automatic/reports/download_log.txt
+2025-08-19 12:44:25,144 - INFO - Reports directory exists: True
+2025-08-19 12:44:25,144 - INFO - Reports directory writable: True
+2025-08-19 12:44:25,144 - INFO - PDFDownloader initialization completed successfully.
+2025-08-19 12:44:27,492 - INFO - === PDF Downloader Logger Initialized ===
+2025-08-19 12:44:27,492 - INFO - Log file path: data/literature_reviews/demo_contact_center_ai/pdfs/automatic/reports/download_log.txt
+2025-08-19 12:44:27,492 - INFO - Reports directory exists: True
+2025-08-19 12:44:27,492 - INFO - Reports directory writable: True
+2025-08-19 12:44:27,493 - INFO - PDFDownloader initialization completed successfully.

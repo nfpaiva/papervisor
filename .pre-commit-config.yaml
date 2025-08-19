@@ -1,23 +1,4 @@
 repos:
-  - repo: local
-    hooks:
-      - id: xenon
-        name: xenon complexity gate (excludes legacy files)
-        entry: xenon --max-absolute C --max-modules B --max-average A --exclude src/papervisor/pdf_downloader.py,src/papervisor/cli.py,src/papervisor/web_server.py src/papervisor
-        language: system
-        pass_filenames: false
-        always_run: true
-        verbose: true
-        require_serial: true
-      - id: radon
-        name: radon maintainability/complexity summary
-        entry: >
-            bash -c "radon mi src/papervisor -j | python3 -c 'import sys, json; d=json.load(sys.stdin); mis=[v[\"mi\"] for v in d.values()]; grades=[v[\"rank\"] for v in d.values()]; avg_rank=chr(round(sum(map(ord,grades))/len(grades))); avg_score=sum(mis)/len(mis) if mis else 0; print(f\"Codebase average: {avg_rank} ({avg_score:.2f})\"); [print(f\"{k} - {v[\"rank\"]} ({v[\"mi\"]:.1f})\") for k,v in d.items()]'"
-        language: system
-        pass_filenames: false
-        always_run: true
-        require_serial: true
-        verbose: true
   # Hygiene hooks grouped for clarity
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -31,25 +12,24 @@ repos:
         exclude: 'data/literature_reviews/demo_contact_center_ai/.*'
       - id: check-merge-conflict
       - id: debug-statements
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.9
+  # Code-modifying hooks first
+  - repo: https://github.com/PyCQA/eradicate
+    rev: 3.0.0
     hooks:
-      - id: ruff
-        args: [--no-fix]  # disables formatting, lint only
+      - id: eradicate
+        name: eradicate commented-out code
+        language_version: python3.12
   - repo: https://github.com/psf/black
     rev: 25.1.0
     hooks:
       - id: black
         language_version: python3.12
-
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
+  # Linting, type-checking, and analysis hooks
+  - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.12.9
     hooks:
       - id: ruff
-        args: [--no-fix]  # Only lint, do not format
-
-  # Use a local mypy hook to ensure pre-commit uses the same environment and dependencies as local and CI runs.
-  # The remote mirrors-mypy hook creates an isolated environment and may miss errors or not match your actual setup.
+        args: [--no-fix]  # disables formatting, lint only
   - repo: local
     hooks:
       - id: mypy-local
@@ -57,20 +37,11 @@ repos:
         entry: mypy src/papervisor --ignore-missing-imports
         language: system
         pass_filenames: false
-  # - repo: https://github.com/pre-commit/mirrors-mypy
-  #   rev: v1.17.1
-  #   hooks:
-  #     - id: mypy
-  #       additional_dependencies: [types-requests, types-urllib3, types-PyYAML]
-  #       args: [src/papervisor, --ignore-missing-imports]
-  #       pass_filenames: false
-  #       language_version: python3.12
-
   - repo: local
     hooks:
       - id: pytest
         name: pytest
-        entry: pytest tests/
+        entry: pytest --cov=src --cov-fail-under=20 tests/
         language: system
         types: [python]
         pass_filenames: false
@@ -91,3 +62,42 @@ repos:
         always_run: true
         require_serial: true
         verbose: true
+      - id: vulture
+        name: vulture dead code check
+        entry: vulture src/papervisor vulture_whitelist.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        verbose: true
+  - repo: https://github.com/econchick/interrogate
+    rev: 1.7.0
+    hooks:
+      - id: interrogate
+        name: interrogate docstring coverage
+        entry: interrogate -v --fail-under=60 src/papervisor
+        language_version: python3.12
+        pass_filenames: false
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.8.6
+    hooks:
+      - id: bandit
+        name: bandit security lint
+        entry: bandit -r src/papervisor
+        language_version: python3.12
+        pass_filenames: false
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        name: detect-secrets scan for secrets
+        entry: detect-secrets-hook --baseline .secrets.baseline
+        language_version: python3.12
+        pass_filenames: false
+  - repo: https://github.com/fpgmaas/deptry
+    rev: 0.23.1
+    hooks:
+      - id: deptry
+        name: deptry import/dependency mismatch
+        entry: deptry src/papervisor
+        language: system
+        pass_filenames: false
