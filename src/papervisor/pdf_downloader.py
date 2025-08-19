@@ -24,7 +24,6 @@ class DownloadStatus:
     ALREADY_EXISTED = "already_existed"
     MANUAL_REQUIRED = "manual_required"
     NOT_FOUND = "not_found"
-    ACCESS_DENIED = "access_denied"
 
 
 class PaperDownloadResult:
@@ -457,7 +456,7 @@ class PDFDownloader:
         output_dir.mkdir(parents=True, exist_ok=True)
 
         results = []
-        for idx, (index, paper) in enumerate(consolidated_df.iterrows()):
+        for idx, (_, paper) in enumerate(consolidated_df.iterrows()):
             if max_downloads and idx >= max_downloads:
                 break
 
@@ -799,40 +798,6 @@ class PDFDownloader:
 
         return urls
 
-    def _convert_ieee_to_pdf_url(
-        self, url: str, article_url: str, fulltext_url: str
-    ) -> Optional[str]:
-        """Convert IEEE URLs to potential PDF download URLs."""
-        # Try different IEEE URL patterns
-        for source_url in [fulltext_url, article_url, url]:
-            if not source_url or "ieeexplore.ieee.org" not in source_url:
-                continue
-
-            # Extract article number from various IEEE URL formats
-            # Format 1: https://ieeexplore.ieee.org/document/9381200
-            # Format 2: https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9381200
-
-            # Try to extract arnumber parameter
-            arnumber_match = re.search(r"arnumber=(\d+)", source_url)
-            if arnumber_match:
-                arnumber = arnumber_match.group(1)
-                # Return the original stamp URL since it might work with proper headers
-                return (
-                    f"https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&"
-                    f"arnumber={arnumber}"
-                )
-
-            # Try to extract document ID
-            doc_match = re.search(r"/document/(\d+)", source_url)
-            if doc_match:
-                doc_id = doc_match.group(1)
-                # Try both stamp URL and getPDF URL
-                return (
-                    f"https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber={doc_id}"
-                )
-
-        return None
-
     def _get_ieee_pdf_urls(
         self, url: str, article_url: str, fulltext_url: str
     ) -> List[Tuple[str, str]]:
@@ -1145,7 +1110,11 @@ class PDFDownloader:
                   border-radius: 5px; }}
         .paper.manual {{ background-color: #fff5f5; }}
         .paper.success {{ background-color: #f0f8f0; }}
+        .paper.existed {{ background-color: #f0f0ff; }}
         .paper-id {{ font-weight: bold; color: #333; }}
+        .query-id {{ font-size: 0.9em; color: #666; background-color: #f5f5f5;
+                   padding: 2px 6px; border-radius: 3px; }}
+
         .title {{ font-size: 1.1em; font-weight: bold; color: #0066cc;
                   margin: 5px 0; }}
         .authors {{ font-style: italic; margin: 5px 0; }}
@@ -1165,6 +1134,7 @@ class PDFDownloader:
                    font-weight: bold; }}
         .status.manual {{ background-color: #ffebee; color: #c62828; }}
         .status.success {{ background-color: #e8f5e8; color: #2e7d32; }}
+        .status.existed {{ background-color: #e3f2fd; color: #1565c0; }}
         .instructions {{ background-color: #fff3cd; padding: 15px; border-radius: 5px;
                          margin-bottom: 20px; border-left: 4px solid #ffc107; }}
     </style>

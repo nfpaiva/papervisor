@@ -100,34 +100,6 @@ class Papervisor:
 
         return df
 
-    def load_project_results(
-        self, project_id: str, use_cache: bool = True
-    ) -> Dict[str, pd.DataFrame]:
-        """
-        Load CSV results for all queries in a project.
-
-        Args:
-            project_id: ID of the literature review project
-            use_cache: Whether to use cached data if available
-
-        Returns:
-            Dictionary mapping query IDs to their DataFrames
-        """
-        results = {}
-        queries = self.project_manager.load_project_queries(project_id)
-
-        for query in queries:
-            try:
-                results[query.id] = self.load_query_results(
-                    project_id, query.id, use_cache
-                )
-            except Exception as e:
-                print(
-                    f"Warning: Could not load results for query " f"'{{query.id}}': {e}"
-                )
-
-        return results
-
     def combine_project_results(
         self, project_id: str, query_ids: Optional[List[str]] = None
     ) -> pd.DataFrame:

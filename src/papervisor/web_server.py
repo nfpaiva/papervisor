@@ -1,6 +1,7 @@
 """Web server for Papervisor PDF download management."""
 
 import json
+import os
 import re
 import threading
 import time
@@ -73,7 +74,21 @@ class PapervisorWebServer:
         # Initialize Flask app
         template_dir = Path(__file__).parent / "templates"
         self.app = Flask(__name__, template_folder=str(template_dir))
-        self.app.secret_key = "papervisor_secret_key_change_in_production"
+        # Use environment variable for secret key, fallback to warning
+        self.app.secret_key = os.environ.get(
+            "PAPERVISOR_SECRET_KEY",
+            "papervisor_secret_key_change_in_production",  # nosec B105
+        )
+        if (
+            self.app.secret_key
+            == "papervisor_secret_key_change_in_production"  # nosec B105
+        ):
+            import warnings
+
+            warnings.warn(
+                "WARNING: Using default secret key! Set PAPERVISOR_SECRET_KEY in production.",
+                UserWarning,
+            )
 
         # Initialize progress tracking for downloads
         self.progress: Dict[str, DownloadProgress] = {}
@@ -3239,7 +3254,7 @@ class PapervisorWebServer:
                 import time
 
                 # Simulate processing time
-                time.sleep(random.uniform(0.5, 2.0))
+                time.sleep(random.uniform(0.5, 2.0))  # nosec B311
 
                 # Simple heuristic based on abstract length and keywords
                 if not abstract or len(abstract) < 50:
@@ -3274,7 +3289,7 @@ class PapervisorWebServer:
                             f"for the literature review."
                         )
                     elif keyword_count >= 1:
-                        result = random.choice(["Yes", "No"])
+                        result = random.choice(["Yes", "No"])  # nosec B311
                         justification = (
                             f"Abstract contains some research content "
                             f"({keyword_count} keywords) but relevance is uncertain."
@@ -3345,6 +3360,6 @@ class PapervisorWebServer:
 
 
 def create_app(project_id: Optional[str] = None, data_dir: str = "data") -> Flask:
-    """Factory to create and return a Flask app instance for Papervisor web server."""
+    """Flask app factory for Papervisor web server (for testing and WSGI)."""
     server = PapervisorWebServer(project_id=project_id, data_dir=data_dir)
     return server.app
