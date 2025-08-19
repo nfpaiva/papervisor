@@ -41,7 +41,7 @@ repos:
     hooks:
       - id: pytest
         name: pytest
-        entry: pytest tests/
+        entry: pytest --cov=src --cov-fail-under=85 tests/
         language: system
         types: [python]
         pass_filenames: false
