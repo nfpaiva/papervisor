@@ -1,6 +1,9 @@
 # papervisor
 Papervisor is a modular, open-source pipeline for accelerating systematic literature reviews. It combines automation, NLP, and human-in-the-loop screening to help researchers move from raw academic search results to a curated, thematically structured review — fast and reproducibly.
 
+**Tags:**
+`literature-review` `systematic-review` `research` `open-source` `automation` `NLP` `PDF` `academic` `workflow` `bibliometrics` `data-extraction` `python` `web-dashboard`
+
 ## 🚀 Main Features (Step-by-Step, User-Guided)
 Papervisor is designed as a stepwise, user-in-the-loop workflow. At each stage, you control, review, and refine the results before moving to the next step:
 
@@ -44,25 +47,59 @@ This script checks your Python version and starts the web dashboard. By default,
 - http://127.0.0.1:5000 (local only)
 - http://0.0.0.0:5000 (network, if allowed by your firewall)
 
-## Continuous Integration & Code Quality
+## 🧑‍💻 Quick Start User Guide
 
-Papervisor uses a robust CI/CD pipeline and pre-commit hooks to ensure code quality, security, and maintainability. The following tools and checks are enforced both locally and in CI:
+Follow these steps to get started with Papervisor:
 
-- **pytest & pytest-cov**: Runs all tests and enforces a minimum code coverage threshold (currently 20%). Coverage reports are uploaded as CI artifacts. The low threshold reflects the current focus on stabilization; it will be increased as the codebase matures.
-- **Xenon**: Enforces strict cyclomatic complexity limits (hard gate).
-- **Radon (Maintainability Index)**: Reports maintainability scores but does not block CI (report-only) due to current codebase state. This will be revisited after refactoring.
-- **Bandit**: Scans for security issues in Python code. False positives are whitelisted with `# nosec` and tracked for future review.
-- **Vulture**: Detects unused code. Whitelisting is managed in `vulture_whitelist.py` for intentional exclusions.
-- **Eradicate**: Flags commented-out/dead code.
-- **Interrogate**: Checks for missing docstrings.
-- **Detect-secrets**: Prevents committing secrets. Baseline is tracked in `.secrets.baseline`.
-- **Deptry**: Detects unused, missing, or misplaced dependencies. Dev tools are ignored as needed for pip compatibility.
+1. **Define your search queries**: Use Publish or Perish (or another academic database) to create and execute your literature search queries.
+2. **Export results as CSV**: Save the search results as CSV files from your chosen tool.
+3. **Create a new literature review project**: In your Papervisor data directory, create a new folder for your project (see documentation for structure).
+4. **Import CSV files**: Place your exported CSV files into the designated folder for your new project.
+5. **Launch the server**: Run `./launch_server_simple.sh` and open the web dashboard. On the landing page, confirm that your project and search queries are listed.
+6. **Continue in the UI**: After these steps, you can use the Papervisor workflow through the web UI to:
+   - Review and deduplicate search results
+   - Download and manage PDFs
+   - Extract text and metrics from PDFs
+   - (Soon) Use LLM-powered screening for abstracts
+   - Track progress and manage your literature review pipeline
 
-### Rationale & Notes
-- **Parity**: The order and configuration of checks are kept in sync between pre-commit and CI for reliability.
-- **Coverage**: The 20% threshold is temporary and will be raised as more tests are added.
-- **Maintainability**: Radon MI is report-only to avoid blocking on legacy code; Xenon is enforced for new complexity.
-- **Whitelisting**: All whitelists (Bandit, Vulture, Detect-secrets, Deptry) are maintained in the repo for transparency and future cleanup.
-- **Artifacts**: CI uploads HTML coverage reports for review.
+*Note: The initial project and CSV import steps are currently manual, but all subsequent workflow steps are managed through the Papervisor web interface.*
 
-For details on running checks locally, see the pre-commit and test sections below (to be expanded).
+---
+
+> 💡 **Want to contribute?**
+>
+> See [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to participate, the contribution workflow, and our CI/code quality process.
+
+---
+
+## 📊 Feature Comparison: Papervisor vs. Other Tools
+
+Papervisor fills a unique space in the literature review ecosystem by combining open-source transparency, automation, and user-in-the-loop control. Here’s how it compares to other tools:
+
+| Feature / Tool                | Papervisor (OSS) | Publish or Perish (OSS) | Rayyan (Proprietary) | Covidence (Proprietary) | ResearchRabbit (Proprietary) |
+|-------------------------------|:----------------:|:----------------------:|:--------------------:|:-----------------------:|:----------------------------:|
+| Multi-project management      |       ✅         |           ❌           |         ✅           |           ✅            |             ✅               |
+| Web dashboard                 |       ✅         |           ❌           |         ✅           |           ✅            |             ✅               |
+| Import CSV search results     |       ✅         |           ✅           |         ✅           |           ✅            |             ✅               |
+| Deduplication (auto/suggest)  |       ✅         |           ❌           |         ✅           |           ✅            |             ❌               |
+| PDF download automation       |       ✅         |           ❌           |         ❌           |           ❌            |             ❌               |
+| Manual PDF upload/fix         |       ✅         |           ❌           |         ✅           |           ✅            |             ❌               |
+| Text extraction from PDFs     |       ✅         |           ❌           |         ❌           |           ❌            |             ❌               |
+| Extraction metrics            |       ✅         |           ❌           |         ❌           |           ❌            |             ❌               |
+| LLM-powered screening         |   (WIP) 🤖       |           ❌           |         ❌           |           ❌            |             ❌               |
+| Bibliometric analytics        |   (Planned) 📊   |           ✅           |         ❌           |           ❌            |             ✅               |
+| User-in-the-loop workflow     |       ✅         |           ❌           |         ✅           |           ✅            |             ❌               |
+| Open source                   |       ✅         |           ✅           |         ❌           |           ❌            |             ❌               |
+| Free to use                   |       ✅         |           ✅           |         ❌           |           ❌            |             ❌               |
+
+*Want to see more features compared? Suggest or track additional features (e.g., advanced analytics, integrations, export formats) by opening an issue or PR!*
+
+**Why Papervisor?**
+- 🛠️  100% open source and extensible: no vendor lock-in, full transparency.
+- 🧑‍💻  Designed for researchers who want automation but also full control at every step.
+- 🔄  Handles the full pipeline: from search result import, deduplication, PDF download, extraction, and (soon) LLM-powered screening.
+- 💸  Free to use, with no paywalls or data lock-in.
+- 🧩  Easily integrates with other tools and workflows.
+
+Papervisor is ideal for researchers, labs, and teams who want a transparent, customizable, and automated literature review pipeline—without sacrificing control or paying for proprietary platforms.
