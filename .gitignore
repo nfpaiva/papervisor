@@ -178,6 +178,10 @@ analysis_output/
 *.pdf
 data/literature_reviews/*/pdfs/
 
+# Ignore download_log.txt in all project reports directories
+# (prevents app data logs from being tracked by git)
+data/literature_reviews/demo_contact_center_ai/pdfs/automatic/reports/download_log.txt
+
 # Allow demo project files for testing and demonstration
 !data/literature_reviews/demo_*/
 !data/literature_reviews/demo_*/**
