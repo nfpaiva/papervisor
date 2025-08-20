@@ -1,49 +1,30 @@
 #!/bin/bash
 
-# Simple server launch script (assumes conda environment is already activated)
-# Usage: conda activate env_papervisor && ./launch_server_simple.sh
+# Simple server launch script for Papervisor
+# Usage: (optional) activate your Python 3.12+ environment, then run:
+#   ./launch_server_simple.sh
 
-echo "🚀 Launching Papervisor Web Server..."
+set -e
 
-# Change to project directory
-cd /home/nuno_paiva_nos_pt/papervisor
+# Move to the directory where this script is located
+cd "$(dirname "$0")"
 
-# Check if we're in the right conda environment
-if [[ "$CONDA_DEFAULT_ENV" != "env_papervisor" ]]; then
-    echo "❌ Please activate the conda environment first:"
-    echo "   conda activate env_papervisor"
-    echo "   Then run this script again"
+# Check Python version (require 3.12+)
+PYTHON_VERSION=$(python -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
+if [[ $(echo "$PYTHON_VERSION < 3.12" | bc) -eq 1 ]]; then
+    echo "❌ Python 3.12 or higher is required. Current: $PYTHON_VERSION"
     exit 1
 fi
 
-echo "📦 Environment: $CONDA_DEFAULT_ENV"
+echo "🚀 Launching Papervisor Web Server..."
 echo "🐍 Python: $(python --version)"
-
 echo "🌐 Starting server..."
-echo "� Multi-project mode: Browse all literature review projects"
 echo "🔗 Local URL: http://127.0.0.1:5000"
 echo "🔗 Network URL: http://0.0.0.0:5000"
 echo "⚠️  Press Ctrl+C to stop the server"
 echo "=================================================="
 
-python -c "
-import sys
-sys.path.insert(0, 'src')
-
-try:
-    from papervisor.web_server import PapervisorWebServer
-
-    # Launch in multi-project mode (no specific project_id)
-    server = PapervisorWebServer(project_id=None, data_dir='data')
-
-    print('🌟 Multi-project mode enabled - browse all literature review projects')
-    server.run(host='0.0.0.0', port=5000, debug=False)
-except KeyboardInterrupt:
-    print()
-    print('👋 Server stopped by user')
-except Exception as e:
-    print(f'❌ Server error: {e}')
-    import traceback
-    traceback.print_exc()
-    sys.exit(1)
-"
+python -m papervisor.web_server || {
+    echo "❌ Failed to launch Papervisor. Is it installed? Try: pip install .[dev]"
+    exit 1
+}

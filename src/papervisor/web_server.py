@@ -3363,3 +3363,38 @@ def create_app(project_id: Optional[str] = None, data_dir: str = "data") -> Flas
     """Flask app factory for Papervisor web server (for testing and WSGI)."""
     server = PapervisorWebServer(project_id=project_id, data_dir=data_dir)
     return server.app
+
+
+def main() -> None:
+    """CLI entry point for running the Papervisor web server."""
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Run the Papervisor web server.")
+    parser.add_argument(
+        "--project-id",
+        type=str,
+        default=None,
+        help="Project ID to serve (default: multi-project mode)",
+    )
+    parser.add_argument(
+        "--data-dir", type=str, default="data", help="Data directory (default: data)"
+    )
+    parser.add_argument(
+        "--host",
+        type=str,
+        default="0.0.0.0",  # nosec B104
+        help="Host to bind (default: 0.0.0.0, use 127.0.0.1 for local only; 0.0.0.0 exposes to network)",
+    )
+    parser.add_argument(
+        "--port", type=int, default=5000, help="Port to bind (default: 5000)"
+    )
+    parser.add_argument("--debug", action="store_true", help="Enable Flask debug mode")
+    args = parser.parse_args()
+
+    server = PapervisorWebServer(project_id=args.project_id, data_dir=args.data_dir)
+    print(f"🌟 Papervisor web server running at http://{args.host}:{args.port}")
+    server.run(host=args.host, port=args.port, debug=args.debug)
+
+
+if __name__ == "__main__":
+    main()
