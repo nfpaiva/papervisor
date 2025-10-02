@@ -92,6 +92,10 @@ class ProjectManager:
         if not project:
             raise ValueError(f"Project with ID '{project_id}' not found")
 
+        # Handle empty search_queries_file (return empty list)
+        if not project.search_queries_file or project.search_queries_file.strip() == "":
+            return []
+
         queries_file = self.data_dir / project.search_queries_file
         if not queries_file.exists():
             raise FileNotFoundError(f"Search queries file not found: {queries_file}")

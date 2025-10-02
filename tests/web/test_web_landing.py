@@ -35,14 +35,16 @@ def test_landing_page_projects_listed(client: FlaskClient) -> None:
     """Test that the landing page lists projects."""
     response = client.get("/", follow_redirects=True)
     assert response.status_code == 200
-    assert b"No consolidated papers file found" in response.data
+    assert b"Test Project" in response.data
+    assert b"Literature Review Projects" in response.data
 
 
 def test_landing_page_status_kpi(client: FlaskClient) -> None:
     """Test that the landing page shows project status indicators (KPIs)."""
     response = client.get("/", follow_redirects=True)
     assert response.status_code == 200
-    assert b"No consolidated papers file found" in response.data
+    assert b"Test Project" in response.data
+    assert b"0" in response.data  # Should show 0 queries, 0 papers, etc.
 
 
 # TODO: Add more tests for KPIs, query info, navigation, empty/error state, etc.

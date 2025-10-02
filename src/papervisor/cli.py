@@ -5,6 +5,7 @@ import sys
 from typing import Dict, Any
 
 from .core import Papervisor
+from .web.models.download_models import DownloadStatus
 
 
 def main() -> None:
@@ -297,13 +298,21 @@ def main() -> None:
 
                 print("Per Query Results:")
                 for query_id, query_results in results.items():
-                    success = sum(1 for r in query_results if r.status == "success")
-                    existed = sum(
-                        1 for r in query_results if r.status == "already_existed"
+                    success = sum(
+                        1 for r in query_results if r.status == DownloadStatus.SUCCESS
                     )
-                    failed = sum(1 for r in query_results if r.status == "failed")
+                    existed = sum(
+                        1
+                        for r in query_results
+                        if r.status == DownloadStatus.ALREADY_EXISTED
+                    )
+                    failed = sum(
+                        1 for r in query_results if r.status == DownloadStatus.FAILED
+                    )
                     manual = sum(
-                        1 for r in query_results if r.status == "manual_required"
+                        1
+                        for r in query_results
+                        if r.status == DownloadStatus.MANUAL_REQUIRED
                     )
 
                     total_success += success

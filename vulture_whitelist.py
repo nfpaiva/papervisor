@@ -205,6 +205,82 @@ def create_app():
     pass  # Imported and used in tests
 
 
+# --- src/papervisor/web/routes/download.py ---
+def download_all_pdfs():
+    pass  # Flask endpoint, used in templates and redirects
+
+
+def download_failed_pdfs():
+    pass  # Flask endpoint, used in templates and redirects
+
+
+def download_status():
+    pass  # Flask endpoint, used in templates and redirects
+
+
+def serve_downloaded_file():
+    pass  # Flask endpoint, used in templates and redirects
+
+
+def manual_download_pdf():
+    pass  # Flask endpoint, used in templates and redirects
+
+
+def serve_manual_file():
+    pass  # Flask endpoint, used in templates and redirects
+
+
+def manual_upload_pdf():
+    pass  # Flask endpoint, used in templates and redirects
+
+
+# --- src/papervisor/web/routes/legacy.py ---
+def review_legacy():
+    pass  # Flask endpoint, used in templates and redirects
+
+
+def downloads_legacy():
+    pass  # Flask endpoint, used in templates and redirects
+
+
+# --- src/papervisor/web/services/cancel_download_service.py ---
+is_running = False  # Used as instance attribute, referenced in code
+
+
+# --- src/papervisor/web/services/project_service.py ---
+def get_projects_with_stats():
+    pass  # Used as method in service, referenced in code
+
+
+# --- src/papervisor/web/utils/__init__.py ---
+def parse_authors():
+    pass  # Utility function, used in templates and processing
+
+
+def parse_year():
+    pass  # Utility function, used in templates and processing
+
+
+def extract_doi_from_text():
+    pass  # Utility function, used in templates and processing
+
+
+def calculate_paper_similarity():
+    pass  # Utility function, used in templates and processing
+
+
+def extract_title_from_text():
+    pass  # Utility function, used in templates and processing
+
+
+def extract_source_from_text():
+    pass  # Utility function, used in templates and processing
+
+
+def preprocess_text():
+    pass  # Utility function, used in templates and processing
+
+
 # --- vulture whitelist references ---
 search_papers
 load_project_index
@@ -257,3 +333,21 @@ _get_downloaded_files
 _detect_sections
 section_key
 create_app
+download_all_pdfs
+download_failed_pdfs
+download_status
+serve_downloaded_file
+manual_download_pdf
+serve_manual_file
+manual_upload_pdf
+review_legacy
+downloads_legacy
+is_running
+get_projects_with_stats
+parse_authors
+parse_year
+extract_doi_from_text
+calculate_paper_similarity
+extract_title_from_text
+extract_source_from_text
+preprocess_text

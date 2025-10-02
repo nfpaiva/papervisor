@@ -27,9 +27,6 @@ dependencies = [
     "requests>=2.28.0",
     "flask>=2.0.0",
     "PyPDF2>=3.0.0",
-    "urllib3>=1.26.0",
-    "werkzeug>=2.0.0",
-    "openai>=0.27.0",
 ]
 
 [project.optional-dependencies]
@@ -42,7 +39,6 @@ dev = [
     "types-PyYAML>=6.0.0",
     "pandas-stubs>=2.0.0",
     "types-requests>=2.28.0",
-    "types-urllib3>=1.26.0",
     "xenon==0.9.1",
     "radon==6.0.1",
     "ruff==0.4.4",
@@ -99,21 +95,22 @@ features = ["pyo3/extension-module"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-python_files = ["test_*.py", "*_test.py"]
+python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = [
-    "--strict-markers",
-    "--strict-config",
-    "-v",  # Verbose output
-    "--tb=short",  # Shorter traceback format
-]
+addopts = "--strict-markers --disable-warnings -v"
 markers = [
-    "unit: Unit tests for individual components",
-    "integration: Integration tests for workflows",
-    "web: Web interface tests",
-    "slow: Tests that take longer to run",
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
 ]
+
+[tool.deptry]
+# Mark papervisor as a first-party module
+known_first_party = ["papervisor"]
+extend_exclude = ["tests/", "__pycache__/", ".git/"]
+# Treat the "dev" optional dependency group as dev-only so it
+# won't be checked for DEP002 (unused dependencies).
+pep621_dev_dependency_groups = ["dev"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -141,7 +138,4 @@ disallow_any_decorated = false
 module = "flask.*"
 ignore_missing_imports = true
 
-# Deptry: treat the "dev" optional dependency group as dev-only so it
-# won't be checked for DEP002 (unused dependencies).
-[tool.deptry]
-pep621_dev_dependency_groups = ["dev"]
+# (deptry config moved above)

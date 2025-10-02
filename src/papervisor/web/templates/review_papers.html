@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+
+{% block title %}Review Papers - {{ project_id }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>🔍 Review & Clean Duplicates</h1>
+                <div>
+                    <span class="badge badge-secondary">Step 1 of 2</span>
+                    <a href="{{ url_for('download_management', project_id=project_id) }}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-download"></i> Go to Downloads
+                    </a>
+                </div>
+            </div>
+
+            <!-- Summary Card -->
+            <div class="card mb-3">
+                <div class="card-body py-2">
+                    <div class="row">
+                        <div class="col-md-2">
+                            <div class="text-center">
+                                <h4 class="mb-0 text-primary">{{ total_papers }}</h4>
+                                <small>Total Papers</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="text-center">
+                                <h4 class="mb-0 text-danger">{{ paper_groups|selectattr('is_potential_duplicate_group')|list|length }}</h4>
+                                <small>Potential Duplicate Groups</small>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <p class="mb-1"><strong>Smart Duplicate Detection:</strong></p>
+                            <small class="text-muted">
+                                Papers are automatically grouped by similarity • 🔴 Red groups indicate potential duplicates •
+                                For duplicates, specify which paper to keep as original
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Queries Card -->
+            {% if search_queries %}
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0">📋 Search Queries Used</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for query in search_queries %}
+                        <div class="col-md-6 mb-2">
+                            <div class="border p-2 rounded">
+                                <strong>{{ query.topic or query.id }}</strong><br>
+                                <small class="text-muted">{{ query.query[:100] }}{% if query.query|length > 100 %}...{% endif %}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else 'success' if category == 'success' else 'info' }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Duplicate Marking Form -->
+            <form method="POST" action="{{ url_for('resolve_duplicates_and_proceed', project_id=project_id) }}">
+                <!-- Paper Groups -->
+                {% for group in paper_groups %}
+                <!-- Hidden inputs for all paper_ids in this group -->
+                {% if group.is_potential_duplicate_group %}
+                    {% for paper in group.papers %}
+                        <input type="hidden" name="group_{{ group.group_id }}" value="{{ paper.paper_id }}">
+                    {% endfor %}
+                {% endif %}
+                <div class="card mb-3 {% if group.is_potential_duplicate_group %}border-danger{% endif %}">
+                    <div class="card-header py-2 {% if group.is_potential_duplicate_group %}bg-danger text-white{% else %}bg-light{% endif %}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">
+                                {% if group.is_potential_duplicate_group %}
+                                    🔴 Potential Duplicate Group ({{ group.group_size }} papers)
+                                {% else %}
+                                    📄 Group {{ loop.index }} ({{ group.group_size }} paper{% if group.group_size > 1 %}s{% endif %})
+                                {% endif %}
+                            </h6>
+                            {% if group.is_potential_duplicate_group %}
+                                <span class="badge badge-light">Review Required</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover mb-0 table-fixed">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th style="width: 60px;">ID</th>
+                                        <th style="width: 40%;">Title</th>
+                                        <th style="width: 25%;">Authors</th>
+                                        <th style="width: 80px;">Year</th>
+                                        <th style="width: 80px;">Similarity</th>
+                                        <th style="width: 80px;">Sources</th>
+                                        <th style="width: 80px;">URLs</th>
+                                        <th style="width: 150px;">Reference Selection</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for paper in group.papers %}
+                                    <tr class="{% if paper.get('is_duplicate') %}table-warning{% endif %}">
+                                        <td class="text-center">
+                                            <span class="badge badge-{% if loop.first %}primary{% else %}secondary{% endif %} badge-sm">
+                                                {{ paper.paper_id }}
+                                            </span>
+                                        </td>
+                                        <td>{{ paper.title }}</td>
+                                        <td>{{ paper.authors }}</td>
+                                        <td>{{ paper.year }}</td>
+                                        <td>{% if paper.similarity_score %}{{ '%.2f'|format(paper.similarity_score) }}{% endif %}</td>
+                                        <td>{{ paper.source_queries }}</td>
+                                        <td>
+                                            {% if paper.doi %}<a href="https://doi.org/{{ paper.doi }}" target="_blank">DOI</a>{% endif %}
+                                        </td>
+                                        <td>
+                                            {% if group.is_potential_duplicate_group %}
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="reference_{{ group.group_id }}" id="ref_{{ group.group_id }}_{{ paper.paper_id }}" value="{{ paper.paper_id }}" {% if paper.paper_id == group.suggested_reference_id %}checked{% endif %} required>
+                                                <label class="form-check-label" for="ref_{{ group.group_id }}_{{ paper.paper_id }}">
+                                                    Reference
+                                                </label>
+                                            </div>
+                                            {% else %}
+                                                <span class="text-success">Unique</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                <div class="text-center my-4">
+                    <button type="submit" class="btn btn-lg btn-success">
+                        ✅ Resolve Duplicates &amp; Proceed to Download Management
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Clear duplicate assignment for a specific paper
+function clearDuplicate(paperId) {
+    const input = document.querySelector(`input[name="duplicate_of_${paperId}"]`);
+    if (input) {
+        input.value = '';
+    }
+}
+
+// Clear all duplicate assignments
+function clearAllDuplicates() {
+    const inputs = document.querySelectorAll('input[name^="duplicate_of_"]');
+    inputs.forEach(input => {
+        input.value = '';
+    });
+}
+
+// Auto-suggestion functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listeners for input validation
+    const duplicateInputs = document.querySelectorAll('input[name^="duplicate_of_"]');
+    duplicateInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            validatePaperId(this);
+        });
+    });
+});
+
+function validatePaperId(input) {
+    const value = input.value.trim();
+    if (value) {
+        // Simple validation - check if it's a number and exists
+        const allPaperIds = Array.from(document.querySelectorAll('.badge')).map(b => b.textContent.trim());
+        if (allPaperIds.includes(value)) {
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+        } else {
+            input.classList.remove('is-valid');
+            input.classList.add('is-invalid');
+        }
+    } else {
+        input.classList.remove('is-valid', 'is-invalid');
+    }
+}
+</script>
+
+<style>
+.table-fixed {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.table-fixed th,
+.table-fixed td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Allow text wrapping for title and authors */
+.table-fixed td:nth-child(2),
+.table-fixed td:nth-child(3) {
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+.table-sm td, .table-sm th {
+    padding: 0.3rem;
+    font-size: 0.85em;
+    line-height: 1.3;
+    vertical-align: middle;
+}
+
+.table-sm .badge-sm {
+    font-size: 0.7em;
+    padding: 0.2em 0.4em;
+}
+
+.btn-xs {
+    padding: 0.1rem 0.3rem;
+    font-size: 0.7rem;
+    line-height: 1.2;
+    border-radius: 0.2rem;
+}
+
+.form-control-sm {
+    height: calc(1.5em + 0.5rem + 2px);
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1.5;
+}
+
+.card-header {
+    padding: 0.5rem 1rem;
+}
+
+.text-primary {
+    font-weight: 500;
+}
+
+.table-responsive {
+    border: none;
+}
+
+.card {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Center align numeric columns */
+.table td:nth-child(1),
+.table td:nth-child(4),
+.table td:nth-child(5),
+.table td:nth-child(6),
+.table td:nth-child(7) {
+    text-align: center;
+}
+
+/* Ensure action column content is vertically centered */
+.table td:nth-child(8) {
+    text-align: center;
+}
+
+.input-group-sm {
+    max-width: 120px;
+    margin: 0 auto;
+}
+
+/* Ensure consistent column widths across all tables */
+.table-responsive table {
+    min-width: 100%;
+}
+</style>
+{% endblock %}

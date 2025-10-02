@@ -1,6 +1,7 @@
 """CSV data loader for Publish or Perish exports."""
 
 from pathlib import Path
+from typing import Dict, Any
 import pandas as pd
 
 
@@ -121,7 +122,7 @@ class PublishOrPerishLoader:
 
         return df_clean
 
-    def get_basic_stats(self, df: pd.DataFrame) -> dict:
+    def get_basic_stats(self, df: pd.DataFrame) -> Dict[str, Any]:
         """Get basic statistics about the loaded dataset."""
         stats = {
             "total_papers": len(df),

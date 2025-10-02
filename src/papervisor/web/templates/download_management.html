@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+
+{% block title %}Download Management - {{ project_id }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Flash Messages Block -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                <div class="mt-3">
+                  {% for category, message in messages %}
+                    <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
+                      {{ message }}
+                      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
+
+            <!-- Modern KPI and Button Header -->
+            <div class="row mb-4 align-items-center g-3">
+                <div class="col text-center">
+                    <div class="kpi-label" style="font-size:1.1rem;">Total Papers</div>
+                    <div class="kpi-value kpi-number" style="font-size:2.2rem;font-weight:bold;">{{ total_papers }}</div>
+                </div>
+                <div class="col text-center">
+                    <div class="kpi-label" style="font-size:1.1rem;">Auto Downloaded</div>
+                    <div class="kpi-value kpi-number" style="font-size:2.2rem;font-weight:bold;">{{ downloaded_count }}</div>
+                </div>
+                <div class="col text-center">
+                    <div class="kpi-label" style="font-size:1.1rem;">Manual Downloads</div>
+                    <div class="kpi-value kpi-number" style="font-size:2.2rem;font-weight:bold;">0</div>
+                </div>
+                <div class="col text-center">
+                    <div class="kpi-label" style="font-size:1.1rem;">Pending</div>
+                    <div class="kpi-value kpi-number" style="font-size:2.2rem;font-weight:bold;">{{ total_papers - downloaded_count }}</div>
+                </div>
+                <div class="col text-center">
+                    <div class="kpi-label" style="font-size:1.1rem;">Success Rate</div>
+                    <div class="kpi-value kpi-number" style="font-size:2.2rem;font-weight:bold;">{{ success_rate }}%</div>
+                </div>
+                <div class="col text-center">
+                    <form method="post" action="{{ url_for('download_all_pdfs', project_id=project_id) }}" class="mb-2">
+                        <button type="submit" id="downloadAllBtn" class="btn btn-primary btn-lg w-100">
+                            <i class="fas fa-download"></i> Download All PDFs
+                        </button>
+                    </form>
+                    <form method="post" action="{{ url_for('download_failed_pdfs', project_id=project_id) }}">
+                        <button type="submit" id="downloadFailedBtn" class="btn btn-warning btn-lg w-100 mt-2">
+                            <i class="fas fa-redo"></i> Retry Only Failed Downloads
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <!-- End Modern KPI and Button Header -->
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1>📥 Download Management</h1>
+                <div>
+                    <span class="badge badge-success">Step 2 of 2</span>
+                    <a href="{{ url_for('review_papers', project_id=project_id) }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-arrow-left"></i> Back to Review
+                    </a>
+                </div>
+            </div>
+
+            <!-- Papers Table -->
+            <div class="card">
+                <div class="card-header py-2">
+                    <h6 class="mb-0">📚 Papers Download Status (Non-Duplicate Papers Only)</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0 table-fixed">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th style="width: 50px;">ID</th>
+                                    <th style="width: 18%;">Title</th>
+                                    <th style="width: 10%;">Authors</th>
+                                    <th style="width: 60px;">Year</th>
+                                    <th style="width: 120px;">Sources</th>
+                                    <th style="width: 120px;">Auto Download</th>
+                                    <th style="width: 100px;">Original URL</th>
+                                    <th style="width: 100px;">Downloaded File URL</th>
+                                    <th style="width: 100px;">Manual Download URL</th>
+                                    <th style="width: 140px;">Manual Upload PDF</th>
+                                    <th style="width: 120px;">Manual Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for paper in papers %}
+                                <tr data-paper-id="{{ paper.paper_id }}">
+                                    <td class="text-center">
+                                        <span class="badge badge-primary badge-sm">{{ paper.paper_id }}</span>
+                                    </td>
+                                    <td>
+                                        <strong class="text-primary" title="{{ paper.title }}">
+                                            {{ paper.title[:45] }}{% if paper.title|length > 45 %}...{% endif %}
+                                        </strong>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted" title="{{ paper.authors }}">
+                                            {{ paper.authors[:30] }}{% if paper.authors|length > 30 %}...{% endif %}
+                                        </small>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge badge-info badge-sm">{{ paper.year|int }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <small class="text-primary">
+                                            {% if paper.source_queries %}
+                                                {{ paper.source_queries|join(' ') }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </small>
+                                    </td>
+                                    <td class="text-center auto-download-cell" style="max-width:120px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">
+                                        {% if paper.auto_download_status == 'Downloaded' %}
+                                            <span class="badge badge-success" style="color:#222;">Downloaded</span>
+                                        {% elif paper.auto_download_status == 'Pending' %}
+                                            <span class="badge badge-warning" style="color:#222;">Pending</span>
+                                        {% elif paper.auto_download_status == 'Failed' %}
+                                            <span class="badge badge-danger">Failed</span>
+                                            <br><small class="text-muted" style="display:inline-block;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ paper.auto_download_message }}</small>
+                                        {% else %}
+                                            <span class="badge badge-secondary" style="color:#222;">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center" style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                        {% if paper.original_url %}
+                                            <a href="{{ paper.original_url }}" target="_blank" class="btn btn-xs btn-outline-secondary" title="Original URL"><i class="fas fa-link"></i></a>
+                                        {% else %}
+                                            <small class="text-muted">-</small>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center" style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                        {% if paper.auto_download_status == 'Downloaded' and paper.downloaded_file and paper.downloaded_file != 'nan' %}
+                                            <a href="{{ url_for('serve_downloaded_file', project_id=project_id, filename=paper.downloaded_file) }}" target="_blank" class="btn btn-xs btn-outline-success" title="Downloaded File"><i class="fas fa-file-pdf"></i></a>
+                                        {% else %}
+                                            <small class="text-muted">-</small>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center" style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                        <form method="post" action="{{ url_for('manual_download_pdf', project_id=project_id, paper_id=paper.paper_id) }}" style="display:inline-flex;align-items:center;gap:2px;">
+                                            <input type="text" class="form-control form-control-sm" name="manual_download_url_{{ paper.paper_id }}" value="" placeholder="PDF URL" style="width:90px;">
+                                            <button class="btn btn-success btn-xs mt-1" type="submit">Download</button>
+                                        </form>
+                                    </td>
+                                    <td class="text-center" style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                        <form method="post" action="{{ url_for('manual_upload_pdf', project_id=project_id, paper_id=paper.paper_id) }}" enctype="multipart/form-data" style="display:inline-flex;align-items:center;gap:2px;">
+                                            <input type="file" class="form-control form-control-sm" name="manual_upload_pdf_{{ paper.paper_id }}" accept="application/pdf" style="width:120px;">
+                                            <button class="btn btn-primary btn-xs mt-1" type="submit">Upload</button>
+                                        </form>
+                                    </td>
+                                    <td class="text-center">
+                                        {% if paper.manual_dw_file_url %}
+                                            <span class="badge bg-success"><i class="fas fa-check-circle"></i> Manual Downloaded</span>
+                                        {% elif paper.manual_status == 'Failed' %}
+                                            <span class="badge bg-danger"><i class="fas fa-times-circle"></i> Manual Failed</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary"><i class="fas fa-minus-circle"></i> Not Requested</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const projectId = "{{ project_id }}";
+function resetKpisToPending() {
+    // Set all KPIs to pending/zero state
+    const kpis = document.querySelectorAll('.kpi-number');
+    if (kpis.length >= 5) {
+        kpis[1].textContent = '0'; // Auto Downloaded
+        kpis[2].textContent = '0'; // Manual Downloads
+        kpis[3].textContent = kpis[0].textContent; // Pending = Total Papers
+        kpis[4].textContent = '0%'; // Success Rate
+    }
+}
+function updateDownloadStatus() {
+    fetch(`/project/${projectId}/download_status`)
+        .then(response => response.json())
+        .then(data => {
+            // Update KPIs
+            const kpis = document.querySelectorAll('.kpi-number');
+            if (kpis.length >= 5) {
+                kpis[0].textContent = data.total_papers;
+                kpis[1].textContent = data.downloaded_count;
+                kpis[3].textContent = data.total_papers - data.downloaded_count; // Pending = total - downloaded
+                kpis[4].textContent = data.total_papers > 0 ? Math.round(data.downloaded_count / data.total_papers * 100) + '%' : '0%';
+            }
+            // Update papers table rows
+            data.papers.forEach(paper => {
+                const row = document.querySelector(`tr[data-paper-id="${paper.paper_id}"]`);
+                if (row) {
+                    // Update auto download status
+                    const autoDownloadCell = row.querySelector('.auto-download-cell');
+                    if (autoDownloadCell) {
+                        if (paper.auto_download_status === 'Downloaded') {
+                            autoDownloadCell.innerHTML = '<span class="badge badge-success" style="color:#222;">Downloaded</span>';
+                        } else if (paper.auto_download_status === 'Pending') {
+                            autoDownloadCell.innerHTML = '<span class="badge badge-warning" style="color:#222;">Pending</span>';
+                        } else if (paper.auto_download_status === 'Failed') {
+                            autoDownloadCell.innerHTML = '<span class="badge badge-danger">Failed</span><br><small class="text-muted" style="display:inline-block;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + paper.auto_download_message + '</small>';
+                        } else {
+                            autoDownloadCell.innerHTML = '<span class="badge badge-secondary" style="color:#222;">-</span>';
+                        }
+                    }
+
+                    // Update manual status
+                    const manualStatusCell = row.querySelector('td:last-child');
+                    if (manualStatusCell) {
+                        if (paper.manual_dw_file_url) {
+                            manualStatusCell.innerHTML = '<span class="badge bg-success"><i class="fas fa-check-circle"></i> Manual Downloaded</span>';
+                        } else if (paper.manual_status === 'Failed') {
+                            manualStatusCell.innerHTML = '<span class="badge bg-danger"><i class="fas fa-times-circle"></i> Manual Failed</span>';
+                        } else {
+                            manualStatusCell.innerHTML = '<span class="badge bg-secondary"><i class="fas fa-minus-circle"></i> Not Requested</span>';
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => { console.error('Error updating download status:', error); });
+}
+window.addEventListener('DOMContentLoaded', function() {
+    // Reset KPIs immediately after download action
+    document.getElementById('downloadAllBtn')?.addEventListener('click', resetKpisToPending);
+    document.getElementById('downloadFailedBtn')?.addEventListener('click', resetKpisToPending);
+    updateDownloadStatus();
+    setInterval(updateDownloadStatus, 1000); // Refresh every second
+});
+</script>
+{% endblock %}

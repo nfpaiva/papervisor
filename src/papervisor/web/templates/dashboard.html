@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container main-content">
+    <h2>Literature Review Projects</h2>
+    {% if projects %}
+        <div class="projects-overview">
+            {% for project in projects %}
+                <div class="project-card">
+                    <div class="project-header">
+                        <h3>{{ project.title }}</h3>
+                        <div class="project-meta">
+                            <span class="badge status-{{ project.status|lower }}">{{ project.status }}</span>
+                            <span class="text-muted">Lead: {{ project.lead_researcher }}</span>
+                            <span class="text-muted">Created: {{ project.created_date }}</span>
+                        </div>
+                    </div>
+                    <p class="project-description">{{ project.description }}</p>
+                    <div class="project-actions">
+                        <a href="{{ url_for('review_papers', project_id=project.project_id) }}" class="btn btn-info">
+                            <i class="icon">🔍</i> Review & Clean Duplicates
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No literature review projects were found in the data directory.</p>
+    {% endif %}
+</div>
+{% endblock %}
